@@ -1,0 +1,108 @@
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Account
+from users.models import User
+from .serializers import AccountSerializer
+import requests
+from django.views.generic import TemplateView
+from templates import *
+
+
+class AccountView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """
+        Post запрос для создания аккаунта
+        """
+        account_name = request.data.get('account_name')
+        user_id = request.data.get('user_id')
+        client_id = request.data.get('client_id')
+        client_secret = request.data.get('client_secret')
+
+        if not all([account_name, user_id, client_id, client_secret]):
+            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        """
+        Получение токена
+        """
+        access_token, error = self.get_access_token(client_id, client_secret)
+        if error:
+            return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = get_object_or_404(User, user_id=user_id)
+
+        try:
+            account = Account.objects.create(
+                account_name=account_name,
+                user_id=user_id,
+                client_id=client_id,
+                client_secret=client_secret,
+                access_token=access_token
+            )
+            serializer = AccountSerializer(account)
+            response_data = {
+                'success': True,
+                'account': serializer.data
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_access_token(self, client_id, client_secret):
+        """
+        Метод получения токена доступа Avito
+        """
+        url = "https://api.avito.ru/token/"
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": client_secret
+        }
+        try:
+            response = requests.post(url, headers=headers, data=data)
+            if response.status_code == 200:
+                access_token = response.json().get("access_token")
+                return access_token, None
+            else:
+                return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
+        except requests.exceptions.RequestException as e:
+            return None, f"An error occurred: {e}"
+
+    def get(self, request, user_id, account_id):
+        """
+        Метод получения информации по аккаунту
+        """
+        try:
+            account = Account.objects.get(user_id=user_id, account_id=account_id)
+            serializer = AccountSerializer(account)
+            response_data = {
+                'success': True,
+                'account': serializer.data
+            }
+            return Response(response_data)
+        except Account.DoesNotExist:
+            return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, user_id, account_id):
+        """
+        Метод удаления аккаунта
+        """
+        try:
+            account = Account.objects.get(user_id=user_id, account_id=account_id)
+            account.delete()
+            return Response({"success": True, "deletedAccount": {"account_id": account_id}}, status=status.HTTP_200_OK)
+        except Account.DoesNotExist:
+            return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class MainView(TemplateView):
+    template_name = 'main.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context

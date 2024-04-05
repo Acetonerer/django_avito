@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Manager</title>
+    <style>
+        /* Общие стили */
+        body {
+            display: flex;
+            justify-content: space-between;
+            height: 100vh; /* Установите высоту всего body равной 100vh (вьюпортная высота) */
+            margin: 0px;
+        }
+
+        /* Остальные стили остаются без изменений */
+        #left-container {
+            background-color: #F7FBFE;
+            box-sizing: border-box;
+            width: 280px;
+            border-right: 1px solid #ccc;
+        }
+
+        #right-container {
+            background-color: #FDFDFD;
+            flex: 1;
+            box-sizing: border-box;
+        }
+
+        .account-button {
+            display: flex;
+            align-items: center;  /* Центрирование по вертикали */
+            justify-content: flex-start;  /* Выравнивание по левому краю */
+            width: 100%; /* Ширина кнопки по содержимому */
+            text-align: left; /* Выравнивание текста по левому краю */
+            padding: 10px; /* Внутренний отступ */
+            cursor: pointer;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #FEFEFE;
+        }
+
+        .account-button img {
+            margin-right: 10px; /* Отступ между изображением и текстом */
+        }
+
+        #add-account {
+            display: flex;
+            align-items: center;  /* Центрирование по вертикали */
+            justify-content: flex-start;  /* Выравнивание по левому краю */
+            text-align: left; /* Выравнивание текста по левому краю */
+            padding: 10px; /* Внутренний отступ */
+            cursor: pointer;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #FEFEFE;
+        }
+
+        .ad-card2 {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        /* Стили для модального окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #logo-img {
+            margin: 20px;
+        }
+
+        #account-buttons {
+            border-radius: 10px;
+            background-color: #FAFBFD;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        #add-account-container {
+            margin-top: 30px;
+            border-radius: 10px;
+            background-color: #FAFBFD;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        #account-name-container {
+            flex: 1;
+            box-sizing: border-box;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between; /* Распределение пространства между элементами */
+            align-items: center; /* Выравнивание элементов по центру по вертикали */
+            padding: 10px; /* Внутренний отступ */
+            background-color: #FEFEFE;
+        }
+
+        #account-name {
+            margin-left: 10px;
+        }
+
+        #settings-button {
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        #ads-container-main {
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 40px - 75px);
+            background-color: #FCFCFC;
+        }
+    </style>
+</head>
+<body>
+    <div id="left-container">
+        <div id="logo">
+            <img id="logo-img" src="https://test-widget-9417.website/0_demo/Avito/data/logo.png" alt="Логотип">
+        </div>
+        <div id="account-buttons"></div>
+        <div id="add-account-container">
+            <button id="add-account" onclick="openModal()"> + добавить аккаунт</button>
+        </div>
+    </div>
+    <div id="right-container">
+        <div id="account-name-container" style="display: none;">
+            <p id="account-name"></p>
+            <button onclick="openSettings()" id="settings-button">Удалить аккаунт</button>
+        </div>
+        <div id="ads-container-main" style="display: block">
+            <!-- Здесь будут отображаться объявления -->
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2>Добавить аккаунт</h2>
+            <input type="text" id="accountName" placeholder="Название аккаунта">
+            <input type="text" id="clientId" placeholder="Client ID">
+            <input type="text" id="clientSecret" placeholder="Client Secret">
+            <button onclick="addAccount()">Добавить</button>
+            <button onclick="closeModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        let userId = 1488;
+        const url = 'http://127.0.0.1:8000';
+        let selectedAccountId = null;
+        let selectedAccountName = null;
+
+        async function fetchUser() {
+            try {
+                const response = await fetch(`${url}/user/${userId}/`);
+                const data = await response.json();
+                if (data.error && data.error === "User not found") {
+                    await createUser();
+                }
+            } catch (error) {
+                console.error('Error fetching user:', error);
+            }
+        }
+
+        async function createUser() {
+            try {
+                const response = await fetch(`${url}/user/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await fetchUser();
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+            }
+        }
+
+        async function fetchAccounts() {
+            try {
+                const response = await fetch(`${url}/user/${userId}/`);
+                const data = await response.json();
+                if (data.accounts) {
+                    displayAccounts(data.accounts);
+                }
+            } catch (error) {
+                console.error('Error fetching accounts:', error);
+            }
+        }
+
+        function displayAccounts(accounts) {
+            const accountButtonsDiv = document.getElementById('account-buttons');
+            accountButtonsDiv.innerHTML = '';
+            accounts.forEach(account => {
+                const button = document.createElement('button');
+                button.className = 'account-button';
+
+                // Создаем элементы для изображения и текста
+                const imgElement = document.createElement('img');
+                imgElement.src = 'https://test-widget-9417.website/0_demo/Avito/data/acc3.png';  // Укажите путь к изображению
+                imgElement.alt = 'Account Logo';  // Описание изображения
+
+                const spanElement = document.createElement('span');
+                spanElement.innerText = account.account_name;
+
+                // Добавляем элементы в кнопку
+                button.appendChild(imgElement);
+                button.appendChild(spanElement);
+
+                button.addEventListener('click', () => {
+                    loadAds(account.account_name, account.account_id);
+                    selectedAccountId = account.account_id; // Сохраняем выбранный accountId
+                    selectedAccountName = account.account_name; // Сохраняем выбранный selectedAccountName
+                });
+
+                accountButtonsDiv.appendChild(button);
+            });
+        }
+
+        async function loadAds(accountName, accountId) {
+            try {
+                const response = await fetch(`${url}/accounts/${userId}/${accountId}/ads`);
+                const data = await response.json();
+                console.log(data);
+                if (data.success && data.items.resources) {
+                    displayAds(accountName, data.items.resources);
+                    document.getElementById('account-name-container').style.display = 'flex';
+                    document.getElementById('settings-button').style.display = 'block';
+                    document.getElementById('account-name').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading ads:', error);
+            }
+        }
+
+        function displayAds(account_name, ads) {
+            const adsContainer = document.getElementById('ads-container-main');
+            const accountName = document.getElementById('account-name');
+            accountName.innerText = 'Название аккаунта: ' + account_name;
+            adsContainer.innerHTML = '';
+            ads.forEach(ad => {
+                const card = document.createElement('div');
+                card.className = 'ad-card2';
+                card.innerHTML = `
+                    <h3>${ad.title}</h3>
+                    <p>${ad.address}</p>
+                    <p>${ad.category.name}</p>
+                    <p>Цена: ${ad.price} руб.</p>
+                    <a href="${ad.url}" target="_blank">Подробнее</a>
+                `;
+                adsContainer.appendChild(card);
+            });
+        }
+
+        async function addAccount() {
+            const accountName = document.getElementById('accountName').value;
+            const clientId = document.getElementById('clientId').value;
+            const clientSecret = document.getElementById('clientSecret').value;
+
+            try {
+                const response = await fetch(`${url}/accounts/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId, account_name: accountName, client_id: clientId, client_secret: clientSecret })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    closeModal();
+                    fetchAccounts();
+                }
+            } catch (error) {
+                console.error('Error adding account:', error);
+            }
+        }
+
+        async function openSettings() {
+            if (selectedAccountId) { // Проверяем, выбран ли аккаунт
+                const confirmDelete = confirm('Вы уверены, что хотите удалить аккаунт: ' + selectedAccountName + '?');
+                if (confirmDelete) {
+                    try {
+                        const response = await fetch(`${url}/accounts/${userId}/${selectedAccountId}/`, {
+                            method: 'DELETE'
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            alert('Аккаунт удален');
+                            document.getElementById('ads-container2').innerHTML = ''; // Используем правильный идентификатор
+                            document.getElementById('settings-button').style.display = 'none';
+                            fetchAccounts(); // Обновляем список аккаунтов после удаления
+                            selectedAccountId = null; // Сбрасываем выбранный accountId
+                        } else {
+                            alert('Ошибка при удалении аккаунта');
+                        }
+                    } catch (error) {
+                        console.error('Error deleting account:', error);
+                        alert('Ошибка при удалении аккаунта');
+                    }
+                }
+            } else {
+                alert('Выберите аккаунт для удаления');
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Инициализация
+        fetchUser().then(fetchAccounts);
+    </script>
+</body>
+</html>
