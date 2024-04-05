@@ -98,11 +98,3 @@ class AccountView(APIView):
             return Response({"success": True, "deletedAccount": {"account_id": account_id}}, status=status.HTTP_200_OK)
         except Account.DoesNotExist:
             return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-class MainView(TemplateView):
-    template_name = 'main.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
