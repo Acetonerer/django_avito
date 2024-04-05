@@ -7,8 +7,6 @@ from .models import Account
 from users.models import User
 from .serializers import AccountSerializer
 import requests
-from django.views.generic import TemplateView
-from templates import *
 
 
 class AccountView(APIView):
