@@ -1,4 +1,4 @@
 import multiprocessing
 
-bind = '127.0.0.1:8000'
+bind = '0.0.0.0:8000'  # Привязываем к 0.0.0.0:8000 для прослушивания всех интерфейсов
 workers = multiprocessing.cpu_count() * 2 + 1
