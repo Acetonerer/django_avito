@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -47,3 +48,47 @@ class AdListView(APIView):
                 return Response({'error': f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AdStatisticsView(APIView):
+    def post(self, request, user_id, account_id):
+        account = Account.objects.get(user_id=user_id, account_id=account_id)
+        access_token = account.access_token
+        account_user_id = account.account_user_id
+        try:
+            date_from = request.data.get('dateFrom')
+            date_to = request.data.get('dateTo')
+            fields = request.data.get('fields', [])
+            item_ids = request.data.get('itemIds', [])
+            period_grouping = request.data.get('periodGrouping')
+
+            data = {
+                "dateFrom": date_from,
+                "dateTo": date_to,
+                "fields": fields,
+                "itemIds": item_ids,
+                "periodGrouping": period_grouping
+            }
+            # Формируем URL для запроса
+            url = f"https://api.avito.ru/stats/v1/accounts/{account_user_id}/items"
+
+            # Устанавливаем заголовки для авторизации
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+
+            # Отправляем POST-запрос к API Avito
+            response = requests.post(url, json=data, headers=headers)
+
+            # Обрабатываем ответ от API Avito
+            if response.status_code == 200:
+                statistics_data = response.json()
+                return Response(statistics_data)
+            else:
+                return Response({'error': f"Failed to fetch statistics data from Avito. "
+                                          f"Status code: {response.status_code}"},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            return Response({'error': f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

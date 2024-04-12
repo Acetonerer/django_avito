@@ -33,13 +33,21 @@ class AccountView(APIView):
 
         user = get_object_or_404(User, user_id=user_id)
 
+        """
+        Получение id от Avito
+        """
+        account_user_id, error = self.get_account_user_id(access_token)
+        if error:
+            return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             account = Account.objects.create(
                 account_name=account_name,
                 user_id=user_id,
                 client_id=client_id,
                 client_secret=client_secret,
-                access_token=access_token
+                access_token=access_token,
+                account_user_id=account_user_id
             )
             serializer = AccountSerializer(account)
             response_data = {
@@ -96,3 +104,20 @@ class AccountView(APIView):
             return Response({"success": True, "deletedAccount": {"account_id": account_id}}, status=status.HTTP_200_OK)
         except Account.DoesNotExist:
             return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def get_account_user_id(self, access_token):
+
+        url = "https://api.avito.ru/core/v1/accounts/self"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                account_user_id = response.json().get("id")
+                return account_user_id, None
+            else:
+                return None, f"Error: Unable to retreeve access_user_id. Status code: {response.status_code}"
+        except requests.exceptions.RequestException as e:
+            return None, f"An error occurred: {e}"
