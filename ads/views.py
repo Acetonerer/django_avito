@@ -25,7 +25,7 @@ class AdListView(APIView):
                 elif response.status_code == 401:
                     """Пересоздание токена при ошибке 401 (Unauthorized)"""
                     refresh_token, error = self.get_refresh_token(account.client_id, account.client_secret,
-                                                                  account.access_token)
+                                                                  account.refresh_token)
 
                     if error:
                         return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -53,27 +53,30 @@ class AdListView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def get_refresh_token(self, client_id, client_secret, refresh_token):
-        """
-        Метод получения токена доступа Avito
-        """
+    def post_refresh_token(self, client_id, client_secret, refresh_token):
         url = "https://api.avito.ru/token/"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
-            "grant_type": "client_credentials",
             "client_id": client_id,
             "client_secret": client_secret,
+            "grant_type": "refresh_token",
             "refresh_token": refresh_token
         }
         try:
             response = requests.post(url, headers=headers, data=data)
             if response.status_code == 200:
-                refresh_token = response.json().get("refresh_token")
-                return refresh_token, None
+                token_data = response.json()
+                access_token = token_data.get("access_token")
+                refreshed_token = token_data.get("refresh_token")
+
+                return access_token, refreshed_token
             else:
-                return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
+                error_message = f"Error: Unable to refresh token. Status code: {response.status_code}"
+                return error_message
+
         except requests.exceptions.RequestException as e:
-            return None, f"An error occurred: {e}"
+            error_message = f"An error occurred: {e}"
+            return error_message
 
 
 class AdStatisticsView(APIView):

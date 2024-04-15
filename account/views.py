@@ -75,8 +75,7 @@ class AccountView(APIView):
             response = requests.post(url, headers=headers, data=data)
             if response.status_code == 200:
                 access_token = response.json().get("access_token")
-                refresh_token = response.json().get("refresh_token")
-                return access_token, refresh_token, None
+                return access_token, None
             else:
                 return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:
