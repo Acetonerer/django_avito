@@ -53,7 +53,7 @@ class AdListView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def post_refresh_token(self, client_id, client_secret, refresh_token):
+    def get_refresh_token(self, client_id, client_secret, refresh_token):
         url = "https://api.avito.ru/token/"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
