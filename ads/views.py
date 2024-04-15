@@ -24,7 +24,8 @@ class AdListView(APIView):
                     return Response({'success': True, 'items': items})
                 elif response.status_code == 401:
                     """Пересоздание токена при ошибке 401 (Unauthorized)"""
-                    refresh_token, error = self.get_access_token(account.client_id, account.client_secret)
+                    refresh_token, error = self.get_refresh_token(account.client_id, account.client_secret,
+                                                                  account.access_token)
 
                     if error:
                         return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -52,7 +53,7 @@ class AdListView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def get_access_token(self, client_id, client_secret):
+    def get_refresh_token(self, client_id, client_secret, refresh_token):
         """
         Метод получения токена доступа Avito
         """
@@ -61,13 +62,14 @@ class AdListView(APIView):
         data = {
             "grant_type": "client_credentials",
             "client_id": client_id,
-            "client_secret": client_secret
+            "client_secret": client_secret,
+            "refresh_token": refresh_token
         }
         try:
             response = requests.post(url, headers=headers, data=data)
             if response.status_code == 200:
-                access_token = response.json().get("access_token")
-                return access_token, None
+                refresh_token = response.json().get("refresh_token")
+                return refresh_token, None
             else:
                 return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:

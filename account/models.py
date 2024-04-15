@@ -9,6 +9,7 @@ class Account(models.Model):
     account_name = models.CharField(max_length=100)
     user_id = models.IntegerField(default=0)
     access_token = models.CharField(max_length=100)
+    refresh_token = models.CharField(max_length=100, default='')
     account_user_id = models.IntegerField(default=0)
 
     def __str__(self):

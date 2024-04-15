@@ -7,6 +7,7 @@ from .models import Account
 from users.models import User
 from .serializers import AccountSerializer
 import requests
+from ads.views import AdListView
 
 
 class AccountView(APIView):
@@ -27,7 +28,7 @@ class AccountView(APIView):
         """
         Получение токена
         """
-        access_token, error = self.get_access_token(client_id, client_secret)
+        access_token, refresh_token, error = self.get_access_token(client_id, client_secret)
         if error:
             return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -47,7 +48,8 @@ class AccountView(APIView):
                 client_id=client_id,
                 client_secret=client_secret,
                 access_token=access_token,
-                account_user_id=account_user_id
+                account_user_id=account_user_id,
+                refresh_token=refresh_token,
             )
             serializer = AccountSerializer(account)
             response_data = {
@@ -73,7 +75,8 @@ class AccountView(APIView):
             response = requests.post(url, headers=headers, data=data)
             if response.status_code == 200:
                 access_token = response.json().get("access_token")
-                return access_token, None
+                refresh_token = response.json().get("refresh_token")
+                return access_token, refresh_token, None
             else:
                 return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:
