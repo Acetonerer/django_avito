@@ -31,7 +31,7 @@ class AdListView(APIView):
                     account.save()
 
                     # Повторный запрос с обновленным токеном
-                    headers['Authorization'] = f"Bearer {refreshed_token}"
+                    headers = {"Authorization": f"Bearer {access_token}"}
                     response = requests.get(url, headers=headers)
                     if response.status_code == 200:
                         items = response.json()
