@@ -1,11 +1,8 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import requests
 from account.models import Account
-from .models import Ad
-from .serializers import AdSerializer
 
 
 class AdListView(APIView):
@@ -27,12 +24,9 @@ class AdListView(APIView):
                     return Response({'success': True, 'items': items})
                 elif response.status_code == 401:
                     """Пересоздание токена при ошибке 401 (Unauthorized)"""
-                    refreshed_token, refresh_error = self.refresh_token(account.client_id, account.client_secret,
-                                                                        account.refresh_token)
-                    if refresh_error:
-                        return Response({'error': refresh_error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    refreshed_token, error = self.refresh_token(account.client_id, account.client_secret,
+                                                                account.refresh_token)
 
-                    # Обновление токена в базе данных
                     account.access_token = refreshed_token
                     account.save()
 
@@ -44,7 +38,8 @@ class AdListView(APIView):
                         return Response({'success': True, 'items': items})
                     else:
                         return Response({
-                            'error': f"Failed to refresh token and retrieve data from Avito. Status code: {response.status_code}"
+                            'error': f"Failed to refresh token and retrieve data from Avito. Status code:"
+                                     f" {response.status_code}"
                         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             except requests.exceptions.RequestException as e:
@@ -52,7 +47,7 @@ class AdListView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def refresh_token(self, client_id, client_secret):
+    def refresh_token(self, client_id, client_secret, refresh_token):
         """
         Метод обновления токена доступа Avito с использованием refresh_token
         """
@@ -67,8 +62,8 @@ class AdListView(APIView):
         try:
             response = requests.post(url, headers=headers, data=data)
             if response.status_code == 200:
-                refreshed_token = response.json().get("access_token")
-                return refreshed_token, None
+                refresh_token = response.json().get("access_token")
+                return refresh_token, None
             else:
                 return None, f"Error: Unable to refresh access token. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:
