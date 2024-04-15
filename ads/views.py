@@ -24,8 +24,7 @@ class AdListView(APIView):
                     return Response({'success': True, 'items': items})
                 elif response.status_code == 401:
                     """Пересоздание токена при ошибке 401 (Unauthorized)"""
-                    refreshed_token, error = self.get_refresh_token(account.client_id, account.client_secret,
-                                                                    account.refresh_token)
+                    refreshed_token, error = self.get_refresh_token(account.client_id, account.client_secret)
 
                     if error:
                         return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -53,17 +52,16 @@ class AdListView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def get_refresh_token(self, client_id, client_secret, refresh_token):
+    def get_refresh_token(self, client_id, client_secret):
         """
         Метод получения обновленного токена доступа Avito
         """
         url = "https://api.avito.ru/token/"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
-            "grant_type": "refresh_token",
+            "grant_type": "client_credentials",
             "client_id": client_id,
             "client_secret": client_secret,
-            "refresh_token": refresh_token
         }
 
         try:
