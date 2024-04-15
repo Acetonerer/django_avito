@@ -25,46 +25,56 @@ class AdListView(APIView):
                 elif response.status_code == 401:
                     """Пересоздание токена при ошибке 401 (Unauthorized)"""
                     refreshed_token, error = self.get_refresh_token(account.client_id, account.client_secret,
-                                                                    account.get_refresh_token)
+                                                                    account.refresh_token)
 
+                    if error:
+                        return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                    # Обновление токена в объекте account
                     account.access_token = refreshed_token
                     account.save()
 
                     # Повторный запрос с обновленным токеном
-                    headers = {"Authorization": f"Bearer {access_token}"}
+                    headers['Authorization'] = f"Bearer {refreshed_token}"
                     response = requests.get(url, headers=headers)
+
                     if response.status_code == 200:
                         items = response.json()
                         return Response({'success': True, 'items': items})
                     else:
                         return Response({
-                            'error': f"Failed to refresh token and retrieve data from Avito. Status code:"
-                                     f" {response.status_code}"
+                            'error': f"Failed to retrieve data from Avito with refreshed token."
+                                     f" Status code: {response.status_code}"
                         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             except requests.exceptions.RequestException as e:
                 return Response({'error': f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def get_refresh_token(self, client_id, client_secret, refresh_token):
         """
-        Метод получения токена доступа Avito
+        Метод получения обновленного токена доступа Avito
         """
         url = "https://api.avito.ru/token/"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
-            "grant_type": "client_credentials",
+            "grant_type": "refresh_token",
             "client_id": client_id,
-            "client_secret": client_secret
+            "client_secret": client_secret,
+            "refresh_token": refresh_token
         }
+
         try:
             response = requests.post(url, headers=headers, data=data)
+
             if response.status_code == 200:
                 access_token = response.json().get("access_token")
                 return access_token, None
             else:
-                return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
+                return None, f"Error: Unable to refresh access token. Status code: {response.status_code}"
+
         except requests.exceptions.RequestException as e:
             return None, f"An error occurred: {e}"
 
