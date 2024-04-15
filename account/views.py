@@ -62,7 +62,7 @@ class AccountView(APIView):
         """
         Метод получения токена доступа Avito
         """
-        url = "https://api.avito.ru/token"
+        url = "https://api.avito.ru/token/"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
             "grant_type": "client_credentials",
