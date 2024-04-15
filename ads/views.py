@@ -24,8 +24,8 @@ class AdListView(APIView):
                     return Response({'success': True, 'items': items})
                 elif response.status_code == 401:
                     """Пересоздание токена при ошибке 401 (Unauthorized)"""
-                    refreshed_token, error = self.refresh_token(account.client_id, account.client_secret,
-                                                                account.refresh_token)
+                    refreshed_token, error = self.get_refresh_token(account.client_id, account.client_secret,
+                                                                    account.get_refresh_token)
 
                     account.access_token = refreshed_token
                     account.save()
@@ -47,25 +47,24 @@ class AdListView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def refresh_token(self, client_id, client_secret, refresh_token):
+    def get_refresh_token(self, client_id, client_secret, refresh_token):
         """
-        Метод обновления токена доступа Avito с использованием refresh_token
+        Метод получения токена доступа Avito
         """
         url = "https://api.avito.ru/token/"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
             "grant_type": "client_credentials",
             "client_id": client_id,
-            "client_secret": client_secret,
+            "client_secret": client_secret
         }
-
         try:
             response = requests.post(url, headers=headers, data=data)
             if response.status_code == 200:
-                refresh_token = response.json().get("access_token")
-                return refresh_token, None
+                access_token = response.json().get("access_token")
+                return access_token, None
             else:
-                return None, f"Error: Unable to refresh access token. Status code: {response.status_code}"
+                return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:
             return None, f"An error occurred: {e}"
 
