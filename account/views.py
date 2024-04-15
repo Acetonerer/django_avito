@@ -25,18 +25,16 @@ class AccountView(APIView):
         if not all([account_name, user_id, client_id, client_secret]):
             return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        """
-        Получение токена
-        """
-        access_token = self.get_access_token(client_id, client_secret)
+        access_token, error = self.get_access_token(client_id, client_secret)
+        if error:
+            return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
 
-        refresh_token = self.get_refresh_token(client_id, client_secret, Account.refresh_token)
+        refresh_token, error = self.get_refresh_token(client_id, client_secret, access_token)
+        if error:
+            return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
 
         user = get_object_or_404(User, user_id=user_id)
 
-        """
-        Получение id от Avito
-        """
         account_user_id, error = self.get_account_user_id(access_token)
         if error:
             return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
@@ -82,12 +80,15 @@ class AccountView(APIView):
             return None, f"An error occurred: {e}"
 
     def get_refresh_token(self, client_id, client_secret, refresh_token):
-        url = "https://api.avito.ru/token"
+        """
+        Метод обновления токена доступа Avito
+        """
+        url = "https://api.avito.ru/token/"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
-            "grant_type": "refresh_token",
             "client_id": client_id,
             "client_secret": client_secret,
+            "grant_type": "refresh_token",
             "refresh_token": refresh_token
         }
         try:
@@ -95,15 +96,14 @@ class AccountView(APIView):
             if response.status_code == 200:
                 access_token = response.json().get("access_token")
                 refresh_token = response.json().get("refresh_token")
-
-                return access_token and refresh_token
+                return {
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                }, None
             else:
-                error_message = f"Error: Unable to refresh token. Status code: {response.status_code}"
-                return error_message
-
+                return None, f"Error: Unable to refresh token. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:
-            error_message = f"An error occurred: {e}"
-            return error_message
+            return None, f"An error occurred: {e}"
 
     def get(self, request, user_id, account_id):
         """
@@ -132,7 +132,9 @@ class AccountView(APIView):
             return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def get_account_user_id(self, access_token):
-
+        """
+        Метод получения ID аккаунта от Avito
+        """
         url = "https://api.avito.ru/core/v1/accounts/self"
         headers = {
             "Authorization": f"Bearer {access_token}",
@@ -144,6 +146,6 @@ class AccountView(APIView):
                 account_user_id = response.json().get("id")
                 return account_user_id, None
             else:
-                return None, f"Error: Unable to retreeve access_user_id. Status code: {response.status_code}"
+                return None, f"Error: Unable to retrieve account_user_id. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:
             return None, f"An error occurred: {e}"
