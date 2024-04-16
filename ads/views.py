@@ -1,8 +1,10 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import requests
 from account.models import Account
+from account.token import get_new_access_token
 
 
 class AdListView(APIView):
@@ -11,41 +13,34 @@ class AdListView(APIView):
         Метод получения списка объявлений для заданного аккаунта
         """
         try:
-            account = Account.objects.get(user_id=user_id, account_id=account_id)
-            access_token = account.access_token
+            account = get_object_or_404(Account, user_id=user_id, account_id=account_id)
+            client_id = account.client_id
+            client_secret = account.client_secret
 
+            # Получение нового access_token
+            new_access_token, error = get_new_access_token(client_id, client_secret)
+
+            if error:
+                return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Обновление токена в объекте account
+            account.access_token = new_access_token
+            account.save()
+
+            # Повторный запрос с обновленным токеном
             url = "https://api.avito.ru/core/v1/items"
-            headers = {"Authorization": f"Bearer {access_token}"}
+            headers = {"Authorization": f"Bearer {new_access_token}"}
 
             try:
                 response = requests.get(url, headers=headers)
                 if response.status_code == 200:
                     items = response.json()
                     return Response({'success': True, 'items': items})
-                elif response.status_code == 401:
-                    """Пересоздание токена при ошибке 401 (Unauthorized)"""
-                    refresh_token, error = self.get_refresh_token(account.client_id, account.client_secret,
-                                                                  account.refresh_token)
-
-                    if error:
-                        return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                    # Обновление токена в объекте account
-                    account.access_token = refresh_token
-                    account.save()
-
-                    # Повторный запрос с обновленным токеном
-                    headers = {"Authorization": f"Bearer {refresh_token}"}
-                    response = requests.get(url, headers=headers)
-
-                    if response.status_code == 200:
-                        items = response.json()
-                        return Response({'success': True, 'items': items})
-                    else:
-                        return Response({
-                            'error': f"Failed to retrieve data from Avito with refreshed token."
-                                     f" Status code: {response.status_code}"
-                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                else:
+                    return Response({
+                        'error': f"Failed to retrieve data from Avito with refreshed token."
+                                 f" Status code: {response.status_code}"
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             except requests.exceptions.RequestException as e:
                 return Response({'error': f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -53,38 +48,13 @@ class AdListView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def get_refresh_token(self, client_id, client_secret, refresh_token):
-        url = "https://api.avito.ru/token/"
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        data = {
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token
-        }
-        try:
-            response = requests.post(url, headers=headers, data=data)
-            if response.status_code == 200:
-                token_data = response.json()
-                access_token = token_data.get("access_token")
-                refreshed_token = token_data.get("refresh_token")
-
-                return access_token, refreshed_token
-            else:
-                error_message = f"Error: Unable to refresh token. Status code: {response.status_code}"
-                return error_message
-
-        except requests.exceptions.RequestException as e:
-            error_message = f"An error occurred: {e}"
-            return error_message
-
 
 class AdStatisticsView(APIView):
     def post(self, request, user_id, account_id):
-        account = Account.objects.get(user_id=user_id, account_id=account_id)
-        access_token = account.access_token
-        account_user_id = account.account_user_id
         try:
+            account = get_object_or_404(Account, user_id=user_id, account_id=account_id)
+            access_token = account.access_token
+
             date_from = request.data.get('dateFrom')
             date_to = request.data.get('dateTo')
             fields = request.data.get('fields', [])
@@ -98,26 +68,37 @@ class AdStatisticsView(APIView):
                 "itemIds": item_ids,
                 "periodGrouping": period_grouping
             }
-            # Формируем URL для запроса
-            url = f"https://api.avito.ru/stats/v1/accounts/{account_user_id}/items"
 
-            # Устанавливаем заголовки для авторизации
+            url = f"https://api.avito.ru/stats/v1/accounts/{account.account_user_id}/items"
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
             }
 
-            # Отправляем POST-запрос к API Avito
             response = requests.post(url, json=data, headers=headers)
 
-            # Обрабатываем ответ от API Avito
+            if response.status_code == 403:
+                # Пересоздаем access_token
+                new_access_token, error = get_new_access_token(account.client_id, account.client_secret)
+                if error:
+                    return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                # Обновляем access_token в базе данных
+                account.access_token = new_access_token
+                account.save()
+
+                # Повторно отправляем запрос с новым access_token
+                headers["Authorization"] = f"Bearer {new_access_token}"
+                response = requests.post(url, json=data, headers=headers)
+
             if response.status_code == 200:
                 statistics_data = response.json()
                 return Response(statistics_data)
             else:
-                return Response({'error': f"Failed to fetch statistics data from Avito. "
-                                          f"Status code: {response.status_code}"},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'error': f"Failed to retrieve data from Avito. Status code: {response.status_code}"},
+                                status=response.status_code)
 
+        except Account.DoesNotExist:
+            return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

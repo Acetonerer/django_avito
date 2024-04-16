@@ -7,7 +7,7 @@ from .models import Account
 from users.models import User
 from .serializers import AccountSerializer
 import requests
-from ads.views import AdListView
+from account.token import get_access_token
 
 
 class AccountView(APIView):
@@ -25,11 +25,7 @@ class AccountView(APIView):
         if not all([account_name, user_id, client_id, client_secret]):
             return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        access_token, error = self.get_access_token(client_id, client_secret)
-        if error:
-            return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
-
-        refresh_token, error = self.get_refresh_token(client_id, client_secret, access_token)
+        access_token, error = get_access_token(client_id, client_secret)
         if error:
             return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -47,7 +43,6 @@ class AccountView(APIView):
                 client_secret=client_secret,
                 access_token=access_token,
                 account_user_id=account_user_id,
-                refresh_token=refresh_token,
             )
             serializer = AccountSerializer(account)
             response_data = {
@@ -57,53 +52,6 @@ class AccountView(APIView):
             return Response(response_data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    def get_access_token(self, client_id, client_secret):
-        """
-        Метод получения токена доступа Avito
-        """
-        url = "https://api.avito.ru/token/"
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": client_id,
-            "client_secret": client_secret
-        }
-        try:
-            response = requests.post(url, headers=headers, data=data)
-            if response.status_code == 200:
-                access_token = response.json().get("access_token")
-                return access_token, None
-            else:
-                return None, f"Error: Unable to retrieve access token. Status code: {response.status_code}"
-        except requests.exceptions.RequestException as e:
-            return None, f"An error occurred: {e}"
-
-    def get_refresh_token(self, client_id, client_secret, refresh_token):
-        """
-        Метод обновления токена доступа Avito
-        """
-        url = "https://api.avito.ru/token/"
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        data = {
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token
-        }
-        try:
-            response = requests.post(url, headers=headers, data=data)
-            if response.status_code == 200:
-                access_token = response.json().get("access_token")
-                refresh_token = response.json().get("refresh_token")
-                return {
-                    "access_token": access_token,
-                    "refresh_token": refresh_token,
-                }, None
-            else:
-                return None, f"Error: Unable to refresh token. Status code: {response.status_code}"
-        except requests.exceptions.RequestException as e:
-            return None, f"An error occurred: {e}"
 
     def get(self, request, user_id, account_id):
         """
