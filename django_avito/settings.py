@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
 from pathlib import Path
-from celery.schedules import crontab
+#from celery.schedules import crontab
 from dotenv import load_dotenv
 
-import django_avito
+#import django_avito
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -58,7 +58,6 @@ INSTALLED_APPS = [
 
 ]
 
-DJANGO_SETTINGS_MODULE=django_avito.settings
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -151,18 +150,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "django_media")
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-CELERY_APP_NAME = [
-        'ads',
-        'stats',
-]
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_TIMEZONE = 'Europe/Moscow'  # Укажите ваш часовой пояс
-
-CELERY_IMPORTS = [
-    'ads.tasks',
-    'stats.tasks',
-]
+# CELERY_APP_NAME = [
+#         'ads',
+#         'stats',
+# ]
+# CELERY_BROKER_URL = 'redis://redis:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+# CELERY_TIMEZONE = 'Europe/Moscow'  # Укажите ваш часовой пояс
+#
+# CELERY_IMPORTS = [
+#     'ads.tasks',
+#     'stats.tasks',
+# ]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
