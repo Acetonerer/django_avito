@@ -1,6 +1,16 @@
 version: '3'
 
 services:
+
+    redis:
+        image: redis
+        ports:
+            - '6379:6379'
+        volumes:
+            - redis_data:/data
+        env_file:
+            - .env
+
     db:
         image: postgres
         env_file:
@@ -30,21 +40,21 @@ services:
         restart: always
 
     celery:
-        image: celery
-        container_name: celery
-        command: celery -A stats worker --loglevel=info
-        volumes:
-            - .:/app
+        build: .
+        tty: true
+        command: celery -A django_avito worker -l INFO
         depends_on:
             - redis
-        restart: always
+            - app
 
-    redis:
-        image: redis
-        container_name: redis
-        expose:
-            - '6379'
+    celery_beat:
+        build: .
+        tty: true
         restart: always
+        command: celery -A django_avito beat -l info -S django
+        depends_on:
+            - redis
+            - app
 
     nginx:
         image: nginx:latest
