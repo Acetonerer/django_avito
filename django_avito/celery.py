@@ -4,15 +4,15 @@ import django
 from celery import Celery
 from celery.schedules import crontab
 
-from django_avito import settings
+from django.conf import settings
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_avito.settings')
 
-django.setup()
 
 app = Celery('django_avito')
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object(settings, namespace='CELERY')
+
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.beat_schedule = {
