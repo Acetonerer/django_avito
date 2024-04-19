@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
 from pathlib import Path
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '94.241.168.77', 'widgets-tema.ru', '0.0.0.0']
 
@@ -43,7 +44,9 @@ INSTALLED_APPS = [
     'corsheaders',
     "users",
     "ads",
+    "stats",
     "account",
+
     'rest_framework_simplejwt',
     "rest_framework.authtoken",
     'django_filters',
@@ -142,6 +145,17 @@ MEDIA_URL = "/django_media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "django_media")
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+CELERY_BEAT_SCHEDULE = {
+    'save_statistics_daily': {
+        'task': 'your_app.tasks.save_statistics_daily_task',
+        'schedule': crontab(hour="1", minute="0"),  # Запуск каждый день в полночь
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

@@ -3,8 +3,10 @@ from account.models import Account
 
 
 class Ad(models.Model):
-    id = models.IntegerField(default=0, unique=True, primary_key=True)
-    title = models.CharField(max_length=100)
+    ad_id = models.BigIntegerField(primary_key=True, default=0)
+    title = models.CharField(max_length=255)
     status = models.CharField(max_length=20, default='active')
-    account_id = models.ForeignKey(Account, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='account_user', default=0)
 
+    def __str__(self):
+        return f"Ad {self.ad_id} - {self.title}"

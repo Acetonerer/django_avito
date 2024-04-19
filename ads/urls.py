@@ -1,7 +1,6 @@
 from django.urls import path
-from .views import AdListView, AdStatisticsView
+from .views import AdListView
 
 urlpatterns = [
-    path('accounts/<user_id>/<account_id>/ads', AdListView.as_view(), name='ad-list'),
-    path('accounts/<user_id>/<account_id>/items', AdStatisticsView.as_view(), name='post_stats-list'),
+    path('ads/<user_id>/<account_id>/', AdListView.as_view(), name='ads-list'),
 ]

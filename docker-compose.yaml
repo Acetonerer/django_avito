@@ -26,6 +26,24 @@ services:
             - "8000:8000"
         depends_on:
             - db
+            - redis
+        restart: always
+
+    celery:
+        image: celery
+        container_name: celery
+        command: celery -A stats worker --loglevel=info
+        volumes:
+            - .:/app
+        depends_on:
+            - redis
+        restart: always
+
+    redis:
+        image: redis
+        container_name: redis
+        expose:
+            - '6379'
         restart: always
 
     nginx:
