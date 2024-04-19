@@ -45,7 +45,7 @@ services:
         command: celery -A django_avito worker -l INFO
         depends_on:
             - redis
-            - app
+            - backend
 
     celery_beat:
         build: .
@@ -54,7 +54,7 @@ services:
         command: celery -A django_avito beat -l info -S django
         depends_on:
             - redis
-            - app
+            - backend
 
     nginx:
         image: nginx:latest
