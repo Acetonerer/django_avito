@@ -43,7 +43,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: celery_worker
-    command: celery -A django_avito worker --loglevel=info
+    command: celery -A django_avito worker -l INFO
     volumes:
       - .:/code
     depends_on:
@@ -56,7 +56,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: celery_beat
-    command: celery -A django_avito beat --loglevel=info
+    command: celery -A django_avito beat -l info -S django
     volumes:
       - .:/code
     depends_on:
