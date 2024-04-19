@@ -2,12 +2,12 @@ version: '3'
 
 services:
 
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - '6379:6379'
-    restart: always
+#  redis:
+#    image: redis
+#    container_name: redis
+#    ports:
+#      - '6379:6379'
+#    restart: always
 
   db:
     image: postgres
@@ -35,34 +35,34 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - redis
+#      - redis
     restart: always
 
-  celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: celery_worker
-    command: celery -A django_avito worker -l INFO
-    volumes:
-      - .:/code
-    depends_on:
-      - redis
-      - backend
-    restart: always
-
-  celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: celery_beat
-    command: celery -A django_avito beat -l info -S django
-    volumes:
-      - .:/code
-    depends_on:
-      - redis
-      - backend
-    restart: always
+#  celery_worker:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: celery_worker
+#    command: celery -A django_avito worker -l INFO
+#    volumes:
+#      - .:/code
+#    depends_on:
+#      - redis
+#      - backend
+#    restart: always
+#
+#  celery_beat:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: celery_beat
+#    command: celery -A django_avito beat -l info -S django
+#    volumes:
+#      - .:/code
+#    depends_on:
+#      - redis
+#      - backend
+#    restart: always
 
   nginx:
     image: nginx:latest
