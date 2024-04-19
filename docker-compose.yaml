@@ -4,12 +4,10 @@ services:
 
     redis:
         image: redis
+        container_name: redis
         ports:
             - '6379:6379'
-        volumes:
-            - redis_data:/data
-        env_file:
-            - .env
+        restart: always
 
     db:
         image: postgres
