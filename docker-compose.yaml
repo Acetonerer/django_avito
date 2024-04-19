@@ -40,7 +40,7 @@ services:
     celery:
         build: .
         tty: true
-        command: celery -A django_avito worker -l INFO
+        command: celery -A stats/tasks.py worker -l INFO
         depends_on:
             - redis
             - backend
@@ -49,7 +49,7 @@ services:
         build: .
         tty: true
         restart: always
-        command: celery -A django_avito beat -l info -S django
+        command: celery -A stats/tasks.py beat -l info -S django
         depends_on:
             - redis
             - backend
