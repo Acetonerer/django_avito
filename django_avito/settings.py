@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'stats',
     'account',
 
-    'django_celery_beat',
+    #'django_celery_beat',
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'django_filters',
