@@ -1,5 +1,4 @@
 from celery import shared_task
-
 from ads.views import AdListView
 from users.models import User
 from account.models import Account

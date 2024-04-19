@@ -4,12 +4,10 @@ from rest_framework import status
 from rest_framework.views import APIView
 import requests
 from account.models import Account
-from account.token import get_new_access_token
 from rest_framework.response import Response
 from django.utils import timezone
 from ads.models import Ad
 from stats.models import Statistics
-from stats.serializers import AdStatisticsSerializer
 
 
 class StatisticsView(APIView):
@@ -22,7 +20,7 @@ class StatisticsView(APIView):
             ads = Ad.objects.filter(account_id=account_id)
             item_ids = [ad.ad_id for ad in ads]
 
-            date_from = (timezone.now() - timedelta(days=4)).date()
+            date_from = (timezone.now() - timedelta(days=1)).date()
             date_to = date_from
 
             date_from_str = date_from.isoformat()

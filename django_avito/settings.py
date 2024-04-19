@@ -152,7 +152,7 @@ CELERY_TIMEZONE = 'Europe/Moscow'
 
 CELERY_BEAT_SCHEDULE = {
     'save_statistics_daily': {
-        'task': 'your_app.tasks.save_statistics_daily_task',
+        'task': 'stats.tasks.save_statistics_daily_task',
         'schedule': crontab(hour="1", minute="0"),  # Запуск каждый день в полночь
     },
 }
