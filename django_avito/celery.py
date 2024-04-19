@@ -1,15 +1,24 @@
 from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
+from celery.schedules import crontab
+from ads.tasks import fetch_and_save_ads
+from stats.tasks import fetch_and_save_statistics
 
-# Установка переменной окружения для настроек проекта
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_avito.settings')
 
-# Создание экземпляра объекта Celery
 app = Celery('django_avito')
-
-# Загрузка настроек из файла Django
 app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# Автоматическое обнаружение и регистрация задач из файлов tasks.py в Django
 app.autodiscover_tasks()
+
+app.conf.beat_schedule = {
+    'fetch-ads': {
+        'task': fetch_and_save_ads,
+        'schedule': crontab(hour="1", minute="0"),
+    },
+    'fetch-stats': {
+        'task': fetch_and_save_statistics,
+        'schedule': crontab(hour="1", minute="0"),
+    },
+}

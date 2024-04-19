@@ -147,16 +147,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "django_media")
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+CELERY_APP_NAME = 'django_avito'
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_TIMEZONE = 'Europe/Moscow'
+CELERY_TIMEZONE = 'Europe/Moscow'  # Укажите ваш часовой пояс
 
-CELERY_BEAT_SCHEDULE = {
-    'save_statistics_daily': {
-        'task': 'stats.tasks.save_statistics_daily_task',
-        'schedule': crontab(hour="1", minute="0"),  # Запуск каждый день в полночь
-    },
-}
+CELERY_IMPORTS = [
+    'ads.tasks',
+    'stats.tasks',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
