@@ -3,9 +3,8 @@ import os
 import django
 from celery import Celery
 from celery.schedules import crontab
-from ads.tasks import fetch_and_save_ads
-from django.conf import settings
-from stats.tasks import fetch_and_save_statistics
+
+from django_avito import settings
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_avito.settings')
