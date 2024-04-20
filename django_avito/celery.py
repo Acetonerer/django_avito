@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 from celery import Celery
 from django.conf import settings
@@ -13,4 +14,4 @@ app.conf.update(
     CELERY_TIMEZONE='Europe/Moscow',
 )
 app.config_from_object(settings, namespace='CELERY')
-app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+app.autodiscover_tasks(settings.INSTALLED_APPS, related_name='tasks')
