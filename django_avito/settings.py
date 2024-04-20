@@ -25,12 +25,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    'corsheaders',
     'users',
     'ads',
     'stats',
     'account',
 
+    'corsheaders',
+    'celery',
     'django_celery_beat',
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
