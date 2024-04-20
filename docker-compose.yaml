@@ -2,7 +2,6 @@ version: '3'
 
 services:
 
-
   db:
     image: postgres
     container_name: db
@@ -41,6 +40,24 @@ services:
       - "443:443"
     depends_on:
       - backend
+    restart: always
+
+  redis:
+    image: redis
+    container_name: redis
+    expose:
+      - '6379'
+    restart: always
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    command: celery -A django_avito worker --loglevel=info
+    depends_on:
+      - db
+      - redis
     restart: always
 
 volumes:

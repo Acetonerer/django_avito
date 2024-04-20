@@ -1,13 +1,7 @@
 # from __future__ import absolute_import, unicode_literals
-# import os
-# import django
 # from celery import Celery
 # from celery.schedules import crontab
-#
-# from django.conf import settings
-#
-#
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_avito.settings')
+# from django_avito import settings
 #
 #
 # app = Celery('django_avito')
