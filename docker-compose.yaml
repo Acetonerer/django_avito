@@ -49,20 +49,25 @@ services:
       - '6379:6379'
     volumes:
       - redis_data:/data
-    restart: always
+
 
   celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.celery
+    build: .
+    tty: true
     container_name: celery_worker
-    volumes:
-      - .:/code
+    command: celery -A django_avito worker —loglevel=info
     depends_on:
-      - db
       - redis
-    restart: always
+      - backend
 
+  celery_beat:
+    build: .
+    tty: true
+    restart: always
+    command: celery -A my_project beat —loglevel=info
+    depends_on:
+      - redis
+      - backend
 volumes:
   pg_data:
   redis_data:
