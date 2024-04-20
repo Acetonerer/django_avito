@@ -3,6 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from celery import Celery
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 
@@ -143,11 +144,11 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'fetch-ads': {
         'task': 'ads.tasks.fetch_and_save_ads',
-        'schedule': timedelta(hours=1),  # Запуск каждый час
+        'schedule': crontab(hour="1", minute="0"),
     },
     'fetch-stats': {
         'task': 'stats.tasks.fetch_and_save_statistics',
-        'schedule': timedelta(hours=1),  # Запуск каждый час
+        'schedule': crontab(hour="1", minute="1"),
     },
 }
 
