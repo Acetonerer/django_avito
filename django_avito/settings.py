@@ -115,7 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "ru"
+LANGUAGE_CODE = "ru-ru"
 
 TIME_ZONE = "UTC"
 
@@ -135,42 +135,23 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "django_media")
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Настройки для Celery
-app = Celery('django_avito')
-app.config_from_object('django.conf:settings', namespace='CELERY')
-app.autodiscover_tasks([
-    'ads',
-    'stats',
-])
 
-# Настройка расписания для периодических задач
-app.conf.beat_schedule = {
-    'fetch-ads': {
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'Europe/Moscow'  # Установите нужный часовой пояс
+
+# Настройки расписания для Celery Beat
+CELERY_BEAT_SCHEDULE = {
+    'fetch-and-save-ads': {
         'task': 'ads.tasks.fetch_and_save_ads',
-        'schedule': crontab(hour="1", minute="0"),
+        'schedule': crontab(hour=1, minute=0, timezone='Europe/Moscow'),
     },
-    'fetch-stats': {
+    'fetch-and-save-statistics': {
         'task': 'stats.tasks.fetch_and_save_statistics',
-        'schedule': crontab(hour="1", minute="1"),
+        'schedule': crontab(hour=1, minute=1, timezone='Europe/Moscow'),
     },
 }
 
-# Настройки для брокера сообщений Redis (настройте переменные окружения)
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-
-# Дополнительные настройки Celery
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Europe/Moscow'
-
-# # Перечень модулей с задачами Celery для импорта
-# CELERY_IMPORTS = [
-#     'ads.tasks',
-#     'stats.tasks',
-# ]
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
