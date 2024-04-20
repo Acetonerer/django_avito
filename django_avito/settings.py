@@ -138,7 +138,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Настройки для Celery
 app = Celery('django_avito')
 app.config_from_object('django.conf:settings', namespace='CELERY')
-app.autodiscover_tasks()
+app.autodiscover_tasks([
+    'ads',
+    'stats',
+])
 
 # Настройка расписания для периодических задач
 app.conf.beat_schedule = {
@@ -162,11 +165,11 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Moscow'
 
-# Перечень модулей с задачами Celery для импорта
-CELERY_IMPORTS = [
-    'ads.tasks',
-    'stats.tasks',
-]
+# # Перечень модулей с задачами Celery для импорта
+# CELERY_IMPORTS = [
+#     'ads.tasks',
+#     'stats.tasks',
+# ]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
