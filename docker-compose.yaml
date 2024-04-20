@@ -64,7 +64,7 @@ services:
     build: .
     tty: true
     restart: always
-    command: celery -A my_project beat —loglevel=info
+    command: celery -A django_avito beat —loglevel=info
     depends_on:
       - redis
       - backend

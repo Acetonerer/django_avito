@@ -144,11 +144,11 @@ CELERY_TIMEZONE = 'Europe/Moscow'  # Установите нужный часо�
 CELERY_BEAT_SCHEDULE = {
     'fetch-and-save-ads': {
         'task': 'ads.tasks.fetch_and_save_ads',
-        'schedule': schedules.crontab(hour=1, minute=0),
+        'schedule': schedules.crontab(hour="1", minute="0"),
     },
     'fetch-and-save-statistics': {
         'task': 'stats.tasks.fetch_and_save_statistics',
-        'schedule': schedules.crontab(hour=1, minute=1),
+        'schedule': schedules.crontab(hour="1", minute="1"),
     },
 }
 
