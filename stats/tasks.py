@@ -9,12 +9,12 @@ def fetch_and_save_statistics():
     try:
         # Извлекаем все account_id из базы данных
         accounts = Account.objects.all()
-        account_ids = [account.account_id for account in accounts]
 
         # Проход по каждому account_id и вызов метода post вашего StatisticsView
-        for account_id in account_ids:
+        for account in accounts:
             request = None  # Вместо request можно передать нужные параметры запроса, если нужно
-            user_id = User.user_id  # Здесь укажите нужные значения
+            account_id = account.account_id
+            user_id = account.user_id  # Здесь укажите нужные значения
             view = StatisticsView()
             response_stats = view.post(request, user_id, account_id)
 

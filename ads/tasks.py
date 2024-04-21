@@ -11,12 +11,12 @@ def fetch_and_save_ads():
     try:
         # Извлекаем все account_id из базы данных
         accounts = Account.objects.all()
-        account_ids = [account.account_id for account in accounts]
 
         # Проход по каждому account_id и вызов метода post AdListView()
-        for account_id in account_ids:
+        for account in accounts:
             request = None
-            user_id = User.user_id
+            account_id = account.account_id
+            user_id = account.user_id
             view = AdListView()
             response_ads = view.post(request, user_id, account_id)
 
