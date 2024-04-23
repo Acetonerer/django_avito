@@ -6,6 +6,8 @@ from celery import Celery
 # Установка переменной окружения для настроек проекта
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_avito.settings')
 
+broker_connection_retry_on_startup = True
+
 # Создание экземпляра объекта Celery
 app = Celery('django_avito')
 
