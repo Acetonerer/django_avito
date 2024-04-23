@@ -20,7 +20,7 @@ class StatisticsView(APIView):
             ads = Ad.objects.filter(account_id=account_id)
             item_ids = [ad.ad_id for ad in ads]
 
-            date_from = (timezone.now() - timedelta(days=1)).date()
+            date_from = (timezone.now() - timedelta(days=2)).date()
             date_to = date_from
 
             date_from_str = date_from.isoformat()
