@@ -103,6 +103,7 @@ class StatisticsView(APIView):
             return Response({'error': f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get(self, request):
+
         try:
             account_id = int(request.query_params.get('account_id'))
             start_date_str = request.query_params.get('start_date')
