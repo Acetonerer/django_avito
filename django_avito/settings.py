@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from celery import schedules
+from celery.schedules import crontab
 
 from dotenv import load_dotenv
 
@@ -138,17 +138,17 @@ CORS_ALLOW_ALL_ORIGINS = True
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_TIMEZONE = 'Europe/Moscow'  # Установите нужный часовой пояс
+CELERY_TIMEZONE = 'Asia/Krasnoyarsk'  # Установите нужный часовой пояс
 
 # Настройки расписания для Celery Beat
 CELERY_BEAT_SCHEDULE = {
     'fetch-and-save-ads': {
         'task': 'ads.tasks.fetch_and_save_ads',
-        'schedule': schedules.crontab(hour=4, minute=40),
+        'schedule': crontab(hour="9", minute="48"),
     },
     'fetch-and-save-statistics': {
         'task': 'stats.tasks.fetch_and_save_statistics',
-        'schedule': schedules.crontab(hour=4, minute=41),
+        'schedule': crontab(hour="9", minute="49"),
     },
 }
 
