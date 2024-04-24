@@ -22,9 +22,9 @@ def fetch_and_save_ads():
 
             # Обработка ответа, если это необходимо
             if response_ads.status_code == 200:
-                print(f"Statistics saved successfully for account_id: {account_id}")
+                print(f"Ads saved successfully for account_id: {account_id}")
             else:
-                print(f"Failed to save statistics for account_id: {account_id}."
+                print(f"Failed to save ads for account_id: {account_id}."
                       f" Status code: {response_ads.status_code}")
 
     except Exception as e:
