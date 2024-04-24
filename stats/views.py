@@ -218,7 +218,6 @@ class StatisticsView(APIView):
                             'uniqViews': uniq_views
                         })
 
-                        """GOVNOKOD ON"""
                     if today_date == end_date:
                         response_data['statistics'].append(today_stats)
 
@@ -228,6 +227,11 @@ class StatisticsView(APIView):
             else:
                 return Response({'error': f"Failed to retrieve Avito statistics. Status code: {response.status_code}"},
                                 status=response.status_code)
+            stati = Statistics.objects.filter(date_from=date_from, date_to=date_to)
+            dates_from = [stat.date_from for stat in stati]
+            dates_to = [stat.dates_to for stat in stati]
+            if start_date not in dates_from or end_date not in dates_to:
+                return "Нету такой даты у нас"
 
             return Response(response_data)
 
