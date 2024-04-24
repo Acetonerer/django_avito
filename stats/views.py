@@ -217,10 +217,11 @@ class StatisticsView(APIView):
                             'uniqFavorites': uniq_favorites,
                             'uniqViews': uniq_views
                         })
+
+                        """GOVNOKOD ON"""
                     if today_date == end_date:
                         response_data['statistics'].append(today_stats)
-                    else:
-                        response_data['statistics'].append(None)
+
                 else:
                     return Response({'error': 'Invalid response format from Avito'},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
