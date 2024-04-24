@@ -111,7 +111,7 @@ class StatisticsView(APIView):
 
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-
+            today_date = (timezone.now()).date()
             # Получаем статистику из базы данных
             statistics = Statistics.objects.filter(
                 account_id=account_id,
@@ -134,7 +134,6 @@ class StatisticsView(APIView):
                     'uniqFavorites': stat.uniq_favorites,
                     'uniqViews': stat.uniq_views
                 })
-
             # Получаем статистику от Avito за сегодняшний день
             today = timezone.now().date()
             account = get_object_or_404(Account, account_id=account_id)
@@ -218,8 +217,10 @@ class StatisticsView(APIView):
                             'uniqFavorites': uniq_favorites,
                             'uniqViews': uniq_views
                         })
-
-                    response_data['statistics'].append(today_stats)
+                    if today_date == end_date:
+                        response_data['statistics'].append(today_stats)
+                    else:
+                        response_data['statistics'].append(None)
                 else:
                     return Response({'error': 'Invalid response format from Avito'},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
