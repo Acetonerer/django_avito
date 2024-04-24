@@ -11,7 +11,7 @@ from ads.models import Ad
 
 
 class AdListView(APIView):
-    def post(self, request, user_id, account_id):
+    def post(self, user_id, account_id):
         try:
             # Находим аккаунт по user_id и account_id
             account = get_object_or_404(Account, user_id=user_id, account_id=account_id)

@@ -14,7 +14,7 @@ from stats.models import Statistics
 
 class StatisticsView(APIView):
 
-    def post(self, request, user_id, account_id):
+    def post(self, user_id, account_id):
         try:
             account = get_object_or_404(Account, user_id=user_id, account_id=account_id)
             access_token = account.access_token
@@ -22,7 +22,7 @@ class StatisticsView(APIView):
             ads = Ad.objects.filter(account_id=account_id)
             item_ids = [ad.ad_id for ad in ads]
 
-            date_from = (timezone.now() - timedelta(days=1)).date()
+            date_from = (timezone.now() - timedelta(days=7)).date()
             date_to = date_from
 
             date_from_str = date_from.isoformat()

@@ -144,11 +144,11 @@ CELERY_TIMEZONE = 'Asia/Krasnoyarsk'  # Установите нужный час
 CELERY_BEAT_SCHEDULE = {
     'fetch-and-save-ads': {
         'task': 'ads.tasks.post_fetch_ads',
-        'schedule': crontab(hour="15", minute="30"),
+        'schedule': crontab(hour="15", minute="40"),
     },
     'fetch-and-save-statistics': {
         'task': 'stats.tasks.post_fetch_statistics',
-        'schedule': crontab(hour="15", minute="31"),
+        'schedule': crontab(hour="15", minute="41"),
     },
 }
 
