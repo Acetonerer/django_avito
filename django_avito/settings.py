@@ -143,11 +143,11 @@ CELERY_TIMEZONE = 'Asia/Krasnoyarsk'  # Установите нужный час
 # Настройки расписания для Celery Beat
 CELERY_BEAT_SCHEDULE = {
     'fetch-and-save-ads': {
-        'task': 'ads.tasks.post_fetch_ads',
+        'task': 'ads.tasks.fetch_and_save_ads',
         'schedule': crontab(hour="15", minute="40"),
     },
     'fetch-and-save-statistics': {
-        'task': 'stats.tasks.post_fetch_statistics',
+        'task': 'stats.tasks.fetch_and_save_statistics',
         'schedule': crontab(hour="15", minute="41"),
     },
 }
