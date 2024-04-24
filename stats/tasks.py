@@ -1,31 +1,101 @@
+from datetime import timedelta, datetime
+
 from celery import shared_task
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+import requests
 from account.models import Account
-from stats.views import StatisticsView
+from rest_framework.response import Response
+from django.utils import timezone
+from ads.models import Ad
+from stats.models import Statistics
 
 
 @shared_task
-def fetch_and_save_statistics():
+def post_fetch_statistics(self, request, user_id, account_id):
     try:
-        # Извлекаем все account_id из базы данных
-        accounts = Account.objects.all()
+        account = get_object_or_404(Account, user_id=user_id, account_id=account_id)
+        access_token = account.access_token
 
-        # Проход по каждому account_id и вызов метода post вашего StatisticsView
-        for account in accounts:
-            request = None  # Вместо request можно передать нужные параметры запроса, если нужно
-            account_id = account.account_id
-            user_id = account.user_id  # Здесь укажите нужные значения
-            view = StatisticsView()
-            response_stats = view.post(request, user_id, account_id)
+        ads = Ad.objects.filter(account_id=account_id)
+        item_ids = [ad.ad_id for ad in ads]
 
-            # Обработка ответа, если это необходимо
-            if response_stats.status_code == 200:
-                print(f"Statistics saved successfully for account_id: {account_id}")
+        date_from = (timezone.now() - timedelta(days=1)).date()
+        date_to = date_from
+
+        date_from_str = date_from.isoformat()
+        date_to_str = date_to.isoformat()
+
+        fields = ["uniqViews", "uniqContacts", "uniqFavorites"]
+        period_grouping = "day"
+
+        data = {
+            "dateFrom": date_from_str,
+            "dateTo": date_to_str,
+            "fields": fields,
+            "itemIds": item_ids,
+            "periodGrouping": period_grouping
+        }
+
+        url = f"https://api.avito.ru/stats/v1/accounts/{account.account_user_id}/items"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(url, json=data, headers=headers)
+
+        if response.status_code == 200:
+            statistics_data = response.json()
+
+            if 'result' in statistics_data and 'items' in statistics_data['result']:
+                items = statistics_data['result']['items']
+
+                for item in items:
+                    item_id = item['itemId']
+                    stats_list = item['stats']
+                    stats_date = date_from
+
+                    if stats_list:
+                        # Берем первую запись из stats_list
+                        stats_entry = stats_list[0]
+                        uniq_contacts = stats_entry.get('uniqContacts', 0)
+                        uniq_favorites = stats_entry.get('uniqFavorites', 0)
+                        uniq_views = stats_entry.get('uniqViews', 0)
+                    else:
+                        # Если stats_list пуст, устанавливаем значения по умолчанию
+                        uniq_contacts, uniq_favorites, uniq_views = 0, 0, 0
+
+                    # Проверяем существует ли запись для данного объявления и даты
+                    stats_instance, created = Statistics.objects.get_or_create(
+                        account=account,
+                        date=stats_date,
+                        ad_id=item_id,
+                        defaults={
+                            'uniq_contacts': uniq_contacts,
+                            'uniq_favorites': uniq_favorites,
+                            'uniq_views': uniq_views
+                        }
+                    )
+
+                    if not created:
+                        # Если запись уже существует, обновляем значения
+                        stats_instance.uniq_contacts = uniq_contacts
+                        stats_instance.uniq_favorites = uniq_favorites
+                        stats_instance.uniq_views = uniq_views
+                        stats_instance.save()
+
+                return Response({'success': True, 'message': 'Statistics saved successfully.'})
+
             else:
-                print(f"Failed to save statistics for account_id: {account_id}."
-                      f" Status code: {response_stats.status_code}")
+                return Response({'error': 'Invalid response format from Avito'},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return {'success': True, 'message': 'Ads and Statistics saved successfully for all accounts.'}
+        else:
+            return Response({'error': f"Failed to retrieve data from Avito. Status code: {response.status_code}"},
+                            status=response.status_code)
 
+    except Account.DoesNotExist:
+        return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        # Обработка любых исключений
-        return {'error': f"An error occurred: {str(e)}"}
+        return Response({'error': f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
