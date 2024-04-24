@@ -1,5 +1,4 @@
 from celery import shared_task
-from users.models import User
 from account.models import Account
 from stats.views import StatisticsView
 
