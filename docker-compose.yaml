@@ -49,6 +49,7 @@ services:
       - '6380:6379'
     volumes:
       - redis_data:/data
+    restart: always
 
 
   celery_worker:
@@ -59,15 +60,17 @@ services:
     depends_on:
       - redis
       - backend
+    restart: always
 
   celery_beat:
     build: .
     tty: true
-    restart: always
+    container_name: celery_beat
     command: celery -A django_avito beat -l info
     depends_on:
       - redis
       - backend
+    restart: always
 volumes:
   pg_data:
   redis_data:

@@ -119,7 +119,8 @@ class StatisticsView(APIView):
             )
 
             response_data = {'success': True, 'statistics': []}
-
+            if start_date and end_date not in statistics:
+                return "Такого у нас нет"
             for stat in statistics:
                 stat_date_str = stat.date.isoformat()
                 stat_data = next((item for item in response_data['statistics'] if item['date'] == stat_date_str), None)
@@ -134,6 +135,7 @@ class StatisticsView(APIView):
                     'uniqFavorites': stat.uniq_favorites,
                     'uniqViews': stat.uniq_views
                 })
+
             # Получаем статистику от Avito за сегодняшний день
             today = timezone.now().date()
             account = get_object_or_404(Account, account_id=account_id)
