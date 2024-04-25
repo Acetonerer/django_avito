@@ -116,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "ru-ru"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Krasnoyarsk"
 
 USE_I18N = True
 
@@ -144,11 +144,11 @@ CELERY_TIMEZONE = 'Asia/Krasnoyarsk'  # Установите нужный час
 CELERY_BEAT_SCHEDULE = {
     'fetch-and-save-ads': {
         'task': 'ads.tasks.fetch_and_save_ads',
-        'schedule': crontab(hour="5", minute="10"),
+        'schedule': crontab(hour="9", minute="54"),
     },
     'fetch-and-save-statistics': {
         'task': 'stats.tasks.fetch_and_save_statistics',
-        'schedule': crontab(hour="5", minute="11"),
+        'schedule': crontab(hour="9", minute="55"),
     },
 }
 
