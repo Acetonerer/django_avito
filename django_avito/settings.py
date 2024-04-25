@@ -116,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "ru-ru"
 
-TIME_ZONE = "Asia/Krasnoyarsk"
+TIME_ZONE = "Europe/Moscow"
 
 USE_I18N = True
 
@@ -138,17 +138,17 @@ CORS_ALLOW_ALL_ORIGINS = True
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_TIMEZONE = 'Asia/Krasnoyarsk'  # Установите нужный часовой пояс
+CELERY_TIMEZONE = "Europe/Moscow"  # Установите нужный часовой пояс
 
 # Настройки расписания для Celery Beat
 CELERY_BEAT_SCHEDULE = {
     'fetch-and-save-ads': {
         'task': 'ads.tasks.fetch_and_save_ads',
-        'schedule': crontab(hour="9", minute="54"),
+        'schedule': crontab(hour="1", minute="10"),
     },
     'fetch-and-save-statistics': {
         'task': 'stats.tasks.fetch_and_save_statistics',
-        'schedule': crontab(hour="9", minute="55"),
+        'schedule': crontab(hour="1", minute="11"),
     },
 }
 
