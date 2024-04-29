@@ -35,7 +35,7 @@ class RightsView(APIView):
             # Создаем словарь с правами пользователей
             rights_data = {}
             for user_right in user_rights:
-                rights_data[f"ID_UserCRM{user_right.user_crm_id}"] = user_right.rights
+                rights_data[f"{user_right.user_crm_id}"] = user_right.rights
 
             return Response({"rights": rights_data})
         else:
