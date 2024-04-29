@@ -9,8 +9,10 @@ class RightsView(APIView):
 
     def post(self, request):
         serializer = UserRightsSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid():
             serializer.save(user=request.user)
+            print(serializer)
             return Response({"success": True}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
