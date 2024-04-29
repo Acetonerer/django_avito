@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'ads',
     'stats',
     'account',
+    'rights',
 
     'corsheaders',
     'celery',
