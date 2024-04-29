@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rights.models import UserRights
@@ -7,16 +7,23 @@ from rights.serializers import UserRightsSerializer
 
 
 class RightsView(APIView):
-
     def post(self, request):
-        try:
-            serializer = UserRightsSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save(user=request.user)
-                return Response({"success": True}, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            raise APIException(detail=str(e))
+        user_id = request.data.get('user_id')
+        users_data = request.data.get('users', {})
+
+        # Проверка наличия обязательного поля "user_id"
+        if not user_id:
+            raise ValidationError("User ID is required")
+
+        # Проверка наличия данных о пользователях
+        if not users_data:
+            raise ValidationError("Users data is required")
+
+        # Цикл по данным о пользователях
+        for user_crm_id, rights in users_data.items():
+            UserRights.objects.create(user=request.user, user_crm_id=user_crm_id, rights=rights)
+
+        return Response({"success": True}, status=status.HTTP_201_CREATED)
 
     def get(self, request, user_id):
         user_rights = UserRights.objects.filter(user=request.user, user_crm_id=user_id).first()
