@@ -9,7 +9,9 @@ from rights.serializers import UserRightsSerializer
 class RightsView(APIView):
     def post(self, request):
         user_id = request.data.get('user_id')
-        users_data = request.data.get('users', {})
+        users_data = request.data.get('users', {
+            'user_crm_id': 'rights'
+        })
 
         # Проверка наличия обязательного поля "user_id"
         if not user_id:
