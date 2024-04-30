@@ -45,21 +45,15 @@ class RightsView(APIView):
         # Получаем данные о пользователях из запроса
         users_data = request.data
 
-        # Проверяем, существует ли объект UserRights для указанного пользователя
         try:
-            user_rights = UserRights.objects.filter(user_id=user_id)
-        except UserRights.DoesNotExist:
-            user_rights = None
-
-        if user_rights:
-            # Обновляем права существующих пользователей
+            # Обновляем существующих пользователей
             for user_crm_id, rights in users_data.items():
-                user_rights = UserRights.objects.get(user_crm_id=user_crm_id, user_id=user_id)
-                user_rights.rights = rights
-                user_rights.save()
-        else:
-            # Добавляем новых пользователей с указанными правами
-            for user_crm_id, rights in users_data.items():
-                UserRights.objects.create(user=request.user, user_crm_id=user_crm_id, rights=rights, user_id=user_id)
+                UserRights.objects.filter(user_id=user_id, user_crm_id=user_crm_id).update(rights=rights)
 
-        return Response({"success": True})
+            # Добавляем новых пользователей, если их еще нет в базе данных
+            new_users_data = [{**data, 'user_id': user_id} for data in users_data.items()]
+            UserRights.objects.bulk_create([UserRights(**data) for data in new_users_data])
+
+            return Response({"success": True})
+        except Exception as e:
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
