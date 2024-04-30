@@ -42,17 +42,21 @@ class RightsView(APIView):
             return Response({"error": "User rights not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def patch(self, request, user_id):
-        # Получаем данные о пользователях из запроса
+        # Получаем данные о пользователях из тела запроса
         users_data = request.data
 
         try:
-            # Обновляем существующих пользователей
+            # Обновляем существующих пользователей и добавляем новых
             for user_crm_id, rights in users_data.items():
-                UserRights.objects.filter(user_id=user_id, user_crm_id=user_crm_id).update(rights=rights)
-
-            # Добавляем новых пользователей, если их еще нет в базе данных
-            new_users_data = [{**data, 'user_id': user_id} for data in users_data.items()]
-            UserRights.objects.bulk_create([UserRights(**data) for data in new_users_data])
+                try:
+                    # Пытаемся получить объект пользователя
+                    user_rights = UserRights.objects.get(user_id=user_id, user_crm_id=user_crm_id)
+                    # Обновляем права пользователя
+                    user_rights.rights = rights
+                    user_rights.save()
+                except UserRights.DoesNotExist:
+                    # Если пользователь не найден, добавляем его
+                    UserRights.objects.create(user_id=user_id, user_crm_id=user_crm_id, rights=rights)
 
             return Response({"success": True})
         except Exception as e:
