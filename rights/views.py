@@ -41,7 +41,7 @@ class RightsView(APIView):
         else:
             return Response({"error": "User rights not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    def patch(self, request, user_id):
+    def put(self, request, user_id):
         # Получаем данные о пользователях из тела запроса
         users_data = request.data
         print(users_data)
