@@ -44,16 +44,18 @@ class RightsView(APIView):
     def patch(self, request, user_id):
         # Получаем данные о пользователях из тела запроса
         users_data = request.data
-
+        print(users_data)
         try:
             # Обновляем существующих пользователей и добавляем новых
             for user_crm_id, rights in users_data.items():
+                print(user_crm_id, rights)
                 try:
                     # Пытаемся получить объект пользователя
                     user_rights = UserRights.objects.get(user_id=user_id, user_crm_id=user_crm_id)
                     # Обновляем права пользователя
                     user_rights.rights = rights
                     user_rights.save()
+                    print(user_rights)
                 except UserRights.DoesNotExist:
                     # Если пользователь не найден, добавляем его
                     UserRights.objects.create(user_id=user_id, user_crm_id=user_crm_id, rights=rights)
