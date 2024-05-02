@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from ads.models import Ad
+from ads.views import AdListView
 from stats.models import Statistics
 from .models import Account
 from users.models import User
@@ -50,6 +51,13 @@ class AccountView(APIView):
                 account_user_id=account_user_id,
             )
 
+            # Получаем и сохраняем объявления для данного аккаунта
+            ad_list_view = AdListView()
+            response = ad_list_view.post(user_id, account.account_id)
+
+            if response.status_code != status.HTTP_200_OK:
+                return response  # Передаем ответ клиенту в случае ошибки при получении объявлений
+
             # Добавление статистики за месяц до текущего дня
             date_to = datetime.now().date()
             date_from = date_to - timedelta(days=30)  # Получаем дату 30 дней назад
@@ -61,7 +69,7 @@ class AccountView(APIView):
                 uniq_favorites = stats_entry.get('uniqFavorites', 0)
                 uniq_views = stats_entry.get('uniqViews', 0)
 
-                stats_instance, created = Statistics.objects.get_or_create(
+                Statistics.objects.create(
                     account=account,
                     date=stats_date,
                     ad_id=item_id,
@@ -69,12 +77,6 @@ class AccountView(APIView):
                     uniq_favorites=uniq_favorites,
                     uniq_views=uniq_views
                 )
-                if not created:
-                    # Если запись уже существует, обновляем значения
-                    stats_instance.uniq_contacts = uniq_contacts
-                    stats_instance.uniq_favorites = uniq_favorites
-                    stats_instance.uniq_views = uniq_views
-                    stats_instance.save()
 
             serializer = AccountSerializer(account)
             response_data = {
