@@ -27,7 +27,7 @@ class AdListView(APIView):
             account.save()
 
             # Запрос к Avito для получения списка объявлений
-            url = "https://api.avito.ru/core/v1/items"
+            url = "https://api.avito.ru/core/v1/items?status=active,old"
             headers = {"Authorization": f"Bearer {new_access_token}"}
 
             try:
@@ -84,7 +84,7 @@ class AdListView(APIView):
             account.save()
 
             # Повторный запрос с обновленным токеном
-            url = "https://api.avito.ru/core/v1/items"
+            url = "https://api.avito.ru/core/v1/items?status=active,old"
             headers = {"Authorization": f"Bearer {new_access_token}"}
 
             try:

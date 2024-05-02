@@ -1,8 +1,13 @@
+from datetime import datetime, timedelta
+
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from ads.models import Ad
+from stats.models import Statistics
 from .models import Account
 from users.models import User
 from .serializers import AccountSerializer
@@ -44,6 +49,33 @@ class AccountView(APIView):
                 access_token=access_token,
                 account_user_id=account_user_id,
             )
+
+            # Добавление статистики за месяц до текущего дня
+            date_to = datetime.now().date()
+            date_from = date_to - timedelta(days=30)  # Получаем дату 30 дней назад
+
+            stats_list = self.get_statistics_for_month(account, date_from, date_to)
+
+            for stats_date, item_id, stats_entry in stats_list:
+                uniq_contacts = stats_entry.get('uniqContacts', 0)
+                uniq_favorites = stats_entry.get('uniqFavorites', 0)
+                uniq_views = stats_entry.get('uniqViews', 0)
+
+                stats_instance, created = Statistics.objects.get_or_create(
+                    account=account,
+                    date=stats_date,
+                    ad_id=item_id,
+                    uniq_contacts=uniq_contacts,
+                    uniq_favorites=uniq_favorites,
+                    uniq_views=uniq_views
+                )
+                if not created:
+                    # Если запись уже существует, обновляем значения
+                    stats_instance.uniq_contacts = uniq_contacts
+                    stats_instance.uniq_favorites = uniq_favorites
+                    stats_instance.uniq_views = uniq_views
+                    stats_instance.save()
+
             serializer = AccountSerializer(account)
             response_data = {
                 'success': True,
@@ -52,6 +84,43 @@ class AccountView(APIView):
             return Response(response_data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_statistics_for_month(self, account, date_from, date_to):
+        url = f"https://api.avito.ru/stats/v1/accounts/{account.account_user_id}/items"
+        headers = {
+            "Authorization": f"Bearer {account.access_token}",
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "dateFrom": date_from.isoformat(),
+            "dateTo": date_to.isoformat(),
+            "fields": ["uniqViews", "uniqContacts", "uniqFavorites"],
+            "periodGrouping": "day",
+            "itemIds": [ad.ad_id for ad in Ad.objects.filter(account_id=account.account_id)]
+        }
+
+        response = requests.post(url, json=data, headers=headers)
+
+        if response.status_code == 200:
+            statistics_data = response.json()
+
+            if 'result' in statistics_data and 'items' in statistics_data['result']:
+                items = statistics_data['result']['items']
+                stats_list = []
+
+                for item in items:
+                    item_id = item['itemId']
+                    stats_entry = item.get('stats', [{}])[0]  # Берем первую запись из stats_list
+                    stats_date = date_from
+
+                    stats_list.append((stats_date, item_id, stats_entry))
+
+                return stats_list
+            else:
+                raise Exception('Invalid response format from Avito')
+        else:
+            raise Exception(f"Failed to retrieve data from Avito. Status code: {response.status_code}")
 
     def get(self, request, user_id, account_id):
         """
