@@ -4,7 +4,7 @@ from users.models import User
 
 class UserRights(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    user_crm_id = models.CharField(max_length=100, unique=True)  # Изменено на уникальное поле
+    user_crm_id = models.CharField(max_length=100)  # Изменено на уникальное поле
     rights = models.CharField(max_length=20, choices=[('editing', 'Editing'), ('view', 'View'),
                                                       ('noaccess', 'No Access')])
 
