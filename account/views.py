@@ -98,7 +98,7 @@ class AccountView(APIView):
             "dateFrom": date_from.isoformat(),
             "dateTo": date_to.isoformat(),
             "fields": ["uniqViews", "uniqContacts", "uniqFavorites"],
-            "periodGrouping": "day",
+            "periodGrouping": "month",
             "itemIds": [ad.ad_id for ad in Ad.objects.filter(account_id=account.account_id)]
         }
 
