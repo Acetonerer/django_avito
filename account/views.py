@@ -73,11 +73,9 @@ class AccountView(APIView):
 
             # Получаем дату начала и конца прошлого месяца
             today = datetime.now().date()
-            first_day_of_month = today.replace(day=1)
-            last_day_of_last_month = first_day_of_month - timedelta(days=1)
-
-            date_from = last_day_of_last_month.replace(day=1)  # Начало прошлого месяца
-            date_to = last_day_of_last_month  # Конец прошлого месяца
+            one_month_ago = today - timedelta(days=30)  # За последние 30 дней
+            date_from = one_month_ago.replace(day=1)  # Начало периода
+            date_to = today - timedelta(days=1)  # Конец периода
 
             # Форматируем даты в строковый формат
             date_from_str = date_from.isoformat()
@@ -112,8 +110,8 @@ class AccountView(APIView):
                         item_id = item['itemId']
                         stats_list = item['stats']
 
-                        for day in range(1, last_day_of_last_month.day + 1):
-                            stats_date = date_from.replace(day=day)
+                        for day in range(1, (today - one_month_ago).days + 1):
+                            stats_date = one_month_ago + timedelta(days=day - 1)
 
                             # Ищем статистику для данного дня и объявления в списке
                             stats_entry = next(
@@ -154,6 +152,11 @@ class AccountView(APIView):
 
             else:
                 return {'error': f"Failed to retrieve data from Avito. Status code: {response.status_code}"}
+
+        except Account.DoesNotExist:
+            return {'error': 'Account not found'}
+        except Exception as e:
+            return {'error': f"An error occurred: {str(e)}"}
 
         except Account.DoesNotExist:
             return {'error': 'Account not found'}
