@@ -14,6 +14,8 @@ from users.models import User
 from .serializers import AccountSerializer
 import requests
 from account.token import get_access_token
+from django.views.generic import TemplateView
+from templates import *
 
 
 class AccountView(APIView):
@@ -207,3 +209,11 @@ class AccountView(APIView):
                 return None, f"Error: Unable to retrieve account_user_id. Status code: {response.status_code}"
         except requests.exceptions.RequestException as e:
             return None, f"An error occurred: {e}"
+
+
+class MainView(TemplateView):
+    template_name = 'main.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context

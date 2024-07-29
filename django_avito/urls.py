@@ -19,6 +19,8 @@ from drf_yasg import openapi
 from django.contrib import admin
 from django.urls import path, include
 
+from account.views import MainView
+
 schema_view = get_schema_view(
     openapi.Info(
         title="API Documentation",
@@ -34,6 +36,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', MainView.as_view(), name='main'),
     path('', include('account.urls')),
     path('', include('users.urls')),
     path('', include('ads.urls')),
