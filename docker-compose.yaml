@@ -55,6 +55,7 @@ services:
     build: .
     tty: true
     container_name: celery_worker
+    restart: always
     command: celery -A django_avito worker -l info
     depends_on:
       - redis
@@ -63,6 +64,7 @@ services:
   celery_beat:
     build: .
     tty: true
+    container_name: celery_beat
     restart: always
     command: celery -A django_avito beat -l info
     depends_on:
