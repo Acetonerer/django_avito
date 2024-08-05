@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '94.241.168.77', 'widgets-tema.ru', '0.0.0.0']
+ALLOWED_HOSTS = ['94.241.168.77', 'widgets-tema.ru', '0.0.0.0']
 
 
 # Application definition
