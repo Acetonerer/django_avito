@@ -7,7 +7,7 @@ class User(models.Model):
     user_id = models.IntegerField(unique=True, default=0)
 
     REQUIRED_FIELDS = []
-    USERNAME_FIELD = 'user_id'
+    USERNAME_FIELD = "user_id"
     is_anonymous = False
     is_authenticated = True
 

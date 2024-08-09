@@ -9,21 +9,40 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('ads', '0001_initial'),
-        ('account', '0001_initial'),
+        ("ads", "0001_initial"),
+        ("account", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Statistics',
+            name="Statistics",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('uniq_contacts', models.IntegerField(default=0)),
-                ('uniq_favorites', models.IntegerField(default=0)),
-                ('uniq_views', models.IntegerField(default=0)),
-                ('account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='account.account')),
-                ('ad', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ads.ad')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("uniq_contacts", models.IntegerField(default=0)),
+                ("uniq_favorites", models.IntegerField(default=0)),
+                ("uniq_views", models.IntegerField(default=0)),
+                (
+                    "account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="account.account",
+                    ),
+                ),
+                (
+                    "ad",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="ads.ad"
+                    ),
+                ),
             ],
         ),
     ]

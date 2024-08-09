@@ -9,17 +9,25 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('account', '0001_initial'),
+        ("account", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Ad',
+            name="Ad",
             fields=[
-                ('ad_id', models.BigIntegerField(primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=255)),
-                ('status', models.CharField(default='active', max_length=20)),
-                ('account', models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, related_name='account_user', to='account.account')),
+                ("ad_id", models.BigIntegerField(primary_key=True, serialize=False)),
+                ("title", models.CharField(max_length=255)),
+                ("status", models.CharField(default="active", max_length=20)),
+                (
+                    "account",
+                    models.ForeignKey(
+                        default=0,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="account_user",
+                        to="account.account",
+                    ),
+                ),
             ],
         ),
     ]

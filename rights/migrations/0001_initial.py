@@ -15,12 +15,36 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='UserRights',
+            name="UserRights",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_crm_id', models.CharField(max_length=100, unique=True)),
-                ('rights', models.CharField(choices=[('editing', 'Editing'), ('view', 'View'), ('noaccess', 'No Access')], max_length=20)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("user_crm_id", models.CharField(max_length=100, unique=True)),
+                (
+                    "rights",
+                    models.CharField(
+                        choices=[
+                            ("editing", "Editing"),
+                            ("view", "View"),
+                            ("noaccess", "No Access"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

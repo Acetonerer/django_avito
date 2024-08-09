@@ -5,18 +5,28 @@ import shutil
 # Настройки
 DOMAIN = "widgets-tema.ru"
 CERT_DIR = f"/etc/letsencrypt/live/{DOMAIN}"
-PROJECT_CERT_DIR = "/django_avito/certs"  # Укажите путь к папке с сертификатами в проекте
+PROJECT_CERT_DIR = (
+    "/django_avito/certs"  # Укажите путь к папке с сертификатами в проекте
+)
 
 
 # Функция для обновления сертификатов
 def update_certificates():
     try:
         # Обновление сертификатов с помощью Certbot
-        subprocess.run(["sudo", "certbot", "certonly", "--standalone", "-d", DOMAIN], check=True)
+        subprocess.run(
+            ["sudo", "certbot", "certonly", "--standalone", "-d", DOMAIN], check=True
+        )
 
         # Копирование обновленных сертификатов в директорию проекта
-        shutil.copy(os.path.join(CERT_DIR, "fullchain.pem"), os.path.join(PROJECT_CERT_DIR, "fullchain.pem"))
-        shutil.copy(os.path.join(CERT_DIR, "privkey.pem"), os.path.join(PROJECT_CERT_DIR, "privkey.pem"))
+        shutil.copy(
+            os.path.join(CERT_DIR, "fullchain.pem"),
+            os.path.join(PROJECT_CERT_DIR, "fullchain.pem"),
+        )
+        shutil.copy(
+            os.path.join(CERT_DIR, "privkey.pem"),
+            os.path.join(PROJECT_CERT_DIR, "privkey.pem"),
+        )
 
         print("Certificates updated and copied successfully.")
     except subprocess.CalledProcessError as e:

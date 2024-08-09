@@ -36,13 +36,13 @@ class StatisticsView(APIView):
                 "dateTo": date_to_str,
                 "fields": fields,
                 "itemIds": item_ids,
-                "periodGrouping": period_grouping
+                "periodGrouping": period_grouping,
             }
 
             url = f"https://api.avito.ru/stats/v1/accounts/{account.account_user_id}/items"
             headers = {
                 "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
 
             response = requests.post(url, json=data, headers=headers)
@@ -50,20 +50,20 @@ class StatisticsView(APIView):
             if response.status_code == 200:
                 statistics_data = response.json()
 
-                if 'result' in statistics_data and 'items' in statistics_data['result']:
-                    items = statistics_data['result']['items']
+                if "result" in statistics_data and "items" in statistics_data["result"]:
+                    items = statistics_data["result"]["items"]
 
                     for item in items:
-                        item_id = item['itemId']
-                        stats_list = item['stats']
+                        item_id = item["itemId"]
+                        stats_list = item["stats"]
                         stats_date = date_from
 
                         if stats_list:
                             # Берем первую запись из stats_list
                             stats_entry = stats_list[0]
-                            uniq_contacts = stats_entry.get('uniqContacts', 0)
-                            uniq_favorites = stats_entry.get('uniqFavorites', 0)
-                            uniq_views = stats_entry.get('uniqViews', 0)
+                            uniq_contacts = stats_entry.get("uniqContacts", 0)
+                            uniq_favorites = stats_entry.get("uniqFavorites", 0)
+                            uniq_views = stats_entry.get("uniqViews", 0)
                         else:
                             # Если stats_list пуст, устанавливаем значения по умолчанию
                             uniq_contacts, uniq_favorites, uniq_views = 0, 0, 0
@@ -74,10 +74,10 @@ class StatisticsView(APIView):
                             date=stats_date,
                             ad_id=item_id,
                             defaults={
-                                'uniq_contacts': uniq_contacts,
-                                'uniq_favorites': uniq_favorites,
-                                'uniq_views': uniq_views
-                            }
+                                "uniq_contacts": uniq_contacts,
+                                "uniq_favorites": uniq_favorites,
+                                "uniq_views": uniq_views,
+                            },
                         )
 
                         if not created:
@@ -87,54 +87,75 @@ class StatisticsView(APIView):
                             stats_instance.uniq_views = uniq_views
                             stats_instance.save()
 
-                    return Response({'success': True, 'message': 'Statistics saved successfully.'})
+                    return Response(
+                        {"success": True, "message": "Statistics saved successfully."}
+                    )
 
                 else:
-                    return Response({'error': 'Invalid response format from Avito'},
-                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {"error": "Invalid response format from Avito"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
             else:
-                return Response({'error': f"Failed to retrieve data from Avito. Status code: {response.status_code}"},
-                                status=response.status_code)
+                return Response(
+                    {
+                        "error": f"Failed to retrieve data from Avito. Status code: {response.status_code}"
+                    },
+                    status=response.status_code,
+                )
 
         except Account.DoesNotExist:
-            return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         except Exception as e:
-            return Response({'error': f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def get(self, request):
 
         try:
-            account_id = int(request.query_params.get('account_id'))
-            start_date_str = request.query_params.get('start_date')
-            end_date_str = request.query_params.get('end_date')
+            account_id = int(request.query_params.get("account_id"))
+            start_date_str = request.query_params.get("start_date")
+            end_date_str = request.query_params.get("end_date")
 
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
             today_date = (timezone.now()).date()
             # Получаем статистику из базы данных
             statistics = Statistics.objects.filter(
-                account_id=account_id,
-                date__range=(start_date, end_date)
+                account_id=account_id, date__range=(start_date, end_date)
             )
 
-            response_data = {'success': True, 'statistics': []}
+            response_data = {"success": True, "statistics": []}
             # if start_date and end_date not in statistics:
             #     return "Такого у нас нет"
             for stat in statistics:
                 stat_date_str = stat.date.isoformat()
-                stat_data = next((item for item in response_data['statistics'] if item['date'] == stat_date_str), None)
+                stat_data = next(
+                    (
+                        item
+                        for item in response_data["statistics"]
+                        if item["date"] == stat_date_str
+                    ),
+                    None,
+                )
 
                 if not stat_data:
-                    stat_data = {'date': stat_date_str, 'ads': []}
-                    response_data['statistics'].append(stat_data)
+                    stat_data = {"date": stat_date_str, "ads": []}
+                    response_data["statistics"].append(stat_data)
 
-                stat_data['ads'].append({
-                    'ad_id': stat.ad_id,
-                    'uniqContacts': stat.uniq_contacts,
-                    'uniqFavorites': stat.uniq_favorites,
-                    'uniqViews': stat.uniq_views
-                })
+                stat_data["ads"].append(
+                    {
+                        "ad_id": stat.ad_id,
+                        "uniqContacts": stat.uniq_contacts,
+                        "uniqFavorites": stat.uniq_favorites,
+                        "uniqViews": stat.uniq_views,
+                    }
+                )
 
             # Получаем статистику от Avito за сегодняшний день
             today = timezone.now().date()
@@ -160,13 +181,13 @@ class StatisticsView(APIView):
                 "dateTo": date_to_str,
                 "fields": fields,
                 "itemIds": item_ids,
-                "periodGrouping": period_grouping
+                "periodGrouping": period_grouping,
             }
 
             url = f"https://api.avito.ru/stats/v1/accounts/{account.account_user_id}/items"
             headers = {
                 "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
 
             response = requests.post(url, json=data, headers=headers)
@@ -175,7 +196,9 @@ class StatisticsView(APIView):
                 new_access_token, error = get_new_access_token(client_id, client_secret)
 
                 if error:
-                    return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {"error": error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
 
                 # Обновление токена в объекте account
                 account.access_token = new_access_token
@@ -184,7 +207,7 @@ class StatisticsView(APIView):
                 url = f"https://api.avito.ru/stats/v1/accounts/{account.account_user_id}/items"
                 headers = {
                     "Authorization": f"Bearer {access_token}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 }
 
                 response = requests.post(url, json=data, headers=headers)
@@ -193,48 +216,61 @@ class StatisticsView(APIView):
 
                 statistics_data = response.json()
 
-                if 'result' in statistics_data and 'items' in statistics_data['result']:
-                    items = statistics_data['result']['items']
+                if "result" in statistics_data and "items" in statistics_data["result"]:
+                    items = statistics_data["result"]["items"]
 
-                    today_stats = {
-                        'date': today.isoformat(),
-                        'ads': []
-                    }
+                    today_stats = {"date": today.isoformat(), "ads": []}
 
                     for item in items:
-                        item_id = item['itemId']
-                        stats_list = item['stats']
+                        item_id = item["itemId"]
+                        stats_list = item["stats"]
 
                         if stats_list:
                             stats_entry = stats_list[0]
-                            uniq_contacts = stats_entry.get('uniqContacts', 0)
-                            uniq_favorites = stats_entry.get('uniqFavorites', 0)
-                            uniq_views = stats_entry.get('uniqViews', 0)
+                            uniq_contacts = stats_entry.get("uniqContacts", 0)
+                            uniq_favorites = stats_entry.get("uniqFavorites", 0)
+                            uniq_views = stats_entry.get("uniqViews", 0)
                         else:
                             uniq_contacts, uniq_favorites, uniq_views = 0, 0, 0
 
-                        today_stats['ads'].append({
-                            'ad_id': item_id,
-                            'uniqContacts': uniq_contacts,
-                            'uniqFavorites': uniq_favorites,
-                            'uniqViews': uniq_views
-                        })
+                        today_stats["ads"].append(
+                            {
+                                "ad_id": item_id,
+                                "uniqContacts": uniq_contacts,
+                                "uniqFavorites": uniq_favorites,
+                                "uniqViews": uniq_views,
+                            }
+                        )
 
                     if today_date == end_date:
-                        response_data['statistics'].append(today_stats)
+                        response_data["statistics"].append(today_stats)
 
                 else:
-                    return Response({'error': 'Invalid response format from Avito'},
-                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {"error": "Invalid response format from Avito"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
             else:
-                return Response({'error': f"Failed to retrieve Avito statistics. Status code: {response.status_code}"},
-                                status=response.status_code)
+                return Response(
+                    {
+                        "error": f"Failed to retrieve Avito statistics. Status code: {response.status_code}"
+                    },
+                    status=response.status_code,
+                )
 
             return Response(response_data)
 
         except ValueError as ve:
-            return Response({'error': f"Invalid date format: {str(ve)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"Invalid date format: {str(ve)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Account.DoesNotExist:
-            return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         except Exception as e:
-            return Response({'error': f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

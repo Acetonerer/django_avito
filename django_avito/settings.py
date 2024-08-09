@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['94.241.168.77', 'widgets-tema.ru', '0.0.0.0']
+ALLOWED_HOSTS = ["94.241.168.77", "widgets-tema.ru", "0.0.0.0"]
 
 
 # Application definition
@@ -25,27 +25,24 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
-    'users',
-    'ads',
-    'stats',
-    'account',
-    'rights',
-
-    'corsheaders',
-    'celery',
-    'django_celery_beat',
-    'rest_framework_simplejwt',
-    'rest_framework.authtoken',
-    'django_filters',
-    'drf_yasg',
-    'rest_framework',
-
+    "users",
+    "ads",
+    "stats",
+    "account",
+    "rights",
+    "corsheaders",
+    "celery",
+    "django_celery_beat",
+    "rest_framework_simplejwt",
+    "rest_framework.authtoken",
+    "django_filters",
+    "drf_yasg",
+    "rest_framework",
 ]
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -60,8 +57,7 @@ ROOT_URLCONF = "django_avito.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'templates']
-        ,
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -76,19 +72,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "django_avito.wsgi.application"
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = "users.User"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST'),
-        'PORT': os.environ.get('POSTGRES_PORT')
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "USER": os.environ.get("POSTGRES_USER"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        "HOST": os.environ.get("POSTGRES_HOST"),
+        "PORT": os.environ.get("POSTGRES_PORT"),
     }
 }
 
@@ -136,20 +132,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "django_media")
 CORS_ALLOW_ALL_ORIGINS = True
 
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_TIMEZONE = "Asia/Krasnoyarsk"  # Установите нужный часовой пояс
 
 # Настройки расписания для Celery Beat
 CELERY_BEAT_SCHEDULE = {
-    'fetch-and-save-ads': {
-        'task': 'ads.tasks.fetch_and_save_ads',
-        'schedule': crontab(hour="9", minute="33"),
+    "fetch-and-save-ads": {
+        "task": "ads.tasks.fetch_and_save_ads",
+        "schedule": crontab(hour="9", minute="33"),
     },
-    'fetch-and-save-statistics': {
-        'task': 'stats.tasks.fetch_and_save_statistics',
-        'schedule': crontab(hour="9", minute="34"),
+    "fetch-and-save-statistics": {
+        "task": "stats.tasks.fetch_and_save_statistics",
+        "schedule": crontab(hour="9", minute="34"),
     },
 }
 

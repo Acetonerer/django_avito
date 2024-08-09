@@ -17,10 +17,14 @@ class AdListView(APIView):
             account = get_object_or_404(Account, user_id=user_id, account_id=account_id)
 
             # Получаем новый access_token для аккаунта
-            new_access_token, error = get_new_access_token(account.client_id, account.client_secret)
+            new_access_token, error = get_new_access_token(
+                account.client_id, account.client_secret
+            )
 
             if error:
-                return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(
+                    {"error": error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
             # Обновляем access_token в модели аккаунта
             account.access_token = new_access_token
@@ -36,33 +40,52 @@ class AdListView(APIView):
                 if response.status_code == 200:
                     data = response.json()
 
-                    if 'resources' in data:
-                        resources = data['resources']
+                    if "resources" in data:
+                        resources = data["resources"]
 
                         # Сохраняем item_ids в базе данных
                         for item in resources:
 
-                            item_id = item['id']
+                            item_id = item["id"]
                             if not Ad.objects.filter(ad_id=item_id).exists():
                                 # Создаем новую запись в модели Ad
-                                Ad.objects.create(ad_id=item_id, title=item.get('title', 'Untitled'), account=account)
+                                Ad.objects.create(
+                                    ad_id=item_id,
+                                    title=item.get("title", "Untitled"),
+                                    account=account,
+                                )
 
-                        return Response({'success': True, 'message': 'Items retrieved and saved successfully.'})
+                        return Response(
+                            {
+                                "success": True,
+                                "message": "Items retrieved and saved successfully.",
+                            }
+                        )
 
                     else:
-                        return Response({'error': 'No items found in response from Avito'},
-                                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                        return Response(
+                            {"error": "No items found in response from Avito"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        )
 
                 else:
-                    return Response({
-                        'error': f"Failed to retrieve data from Avito with refreshed token. Status code: {response.status_code}"
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {
+                            "error": f"Failed to retrieve data from Avito with refreshed token. Status code: {response.status_code}"
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
             except requests.exceptions.RequestException as e:
-                return Response({'error': f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(
+                    {"error": f"An error occurred: {e}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
         except Account.DoesNotExist:
-            return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def get(self, request, user_id, account_id):
         """
@@ -77,7 +100,9 @@ class AdListView(APIView):
             new_access_token, error = get_new_access_token(client_id, client_secret)
 
             if error:
-                return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(
+                    {"error": error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
             # Обновление токена в объекте account
             account.access_token = new_access_token
@@ -91,15 +116,23 @@ class AdListView(APIView):
                 response = requests.get(url, headers=headers)
                 if response.status_code == 200:
                     items = response.json()
-                    return Response({'success': True, 'items': items})
+                    return Response({"success": True, "items": items})
                 else:
-                    return Response({
-                        'error': f"Failed to retrieve data from Avito with refreshed token."
-                                 f" Status code: {response.status_code}"
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {
+                            "error": f"Failed to retrieve data from Avito with refreshed token."
+                            f" Status code: {response.status_code}"
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
             except requests.exceptions.RequestException as e:
-                return Response({'error': f"An error occurred: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response(
+                    {"error": f"An error occurred: {e}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
         except Account.DoesNotExist:
-            return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND
+            )

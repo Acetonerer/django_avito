@@ -24,21 +24,29 @@ class UserDetailView(APIView):
             }
             return Response(response_data)
         except Http404:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def post(self, request):
         """
         Метод создания пользователя
         """
-        user_id = request.data.get('user_id')  # Получаем user_id из тела запроса
+        user_id = request.data.get("user_id")  # Получаем user_id из тела запроса
         if user_id is not None:
             try:
                 user = User.objects.create_user(user_id)
-                return Response({'success': True}, status=status.HTTP_201_CREATED)
+                return Response({"success": True}, status=status.HTTP_201_CREATED)
             except Exception as e:
-                return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"success": False, "error": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         else:
-            return Response({'success': False, 'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"success": False, "error": "user_id is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def delete(self, request, user_id):
         """
@@ -51,7 +59,11 @@ class UserDetailView(APIView):
             accounts.delete()
 
             user.delete()
-            return Response({"success": True, "deletedUser": {"deletedUserId": user_id}}, status=status.HTTP_200_OK)
+            return Response(
+                {"success": True, "deletedUser": {"deletedUserId": user_id}},
+                status=status.HTTP_200_OK,
+            )
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )

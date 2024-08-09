@@ -20,11 +20,16 @@ def fetch_and_save_statistics():
             if response_stats.status_code == 200:
                 print(f"Statistics saved successfully for account_id: {account_id}")
             else:
-                print(f"Failed to save statistics for account_id: {account_id}."
-                      f" Status code: {response_stats.status_code}")
+                print(
+                    f"Failed to save statistics for account_id: {account_id}."
+                    f" Status code: {response_stats.status_code}"
+                )
 
-        return {'success': True, 'message': 'Statistics saved successfully for all accounts.'}
+        return {
+            "success": True,
+            "message": "Statistics saved successfully for all accounts.",
+        }
 
     except Exception as e:
         # Обработка любых исключений
-        return {'error': f"An error occurred: {str(e)}"}
+        return {"error": f"An error occurred: {str(e)}"}
